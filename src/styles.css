@@ -1,0 +1,238 @@
+/* ============================================================
+   BLK — one-page scroll site (React port)
+   Palette: near-black, bone white, crema gold
+   ============================================================ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0806;
+  --bg-2:#100c09;
+  --ink:#f2ece3;
+  --ink-dim:rgba(242,236,227,.58);
+  --ink-faint:rgba(242,236,227,.30);
+  --gold:#c9903f;
+  --line:rgba(242,236,227,.13);
+  --sans:'Helvetica Neue',Helvetica,Arial,'Segoe UI',system-ui,sans-serif;
+  --serif:'Times New Roman',Georgia,serif;
+}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{
+  background:var(--bg);color:var(--ink);font-family:var(--sans);
+  font-weight:400;line-height:1.55;overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+img{max-width:100%;display:block}
+
+/* ---------- shared type ---------- */
+.eyebrow{
+  font-size:11px;letter-spacing:.34em;text-transform:uppercase;
+  color:var(--gold);font-weight:600;
+}
+h1,h2,h3{font-weight:400;line-height:1.02;letter-spacing:-.035em}
+.display{
+  font-size:clamp(2.9rem,8.4vw,7.6rem);
+  line-height:.94;letter-spacing:-.045em;
+}
+.display em{font-family:var(--serif);font-style:italic;letter-spacing:-.02em}
+.lede{
+  font-size:clamp(1rem,1.55vw,1.22rem);line-height:1.62;
+  color:var(--ink-dim);max-width:34ch;
+}
+.wrap{width:min(1180px,90vw);margin-inline:auto}
+
+/* ---------- preloader ---------- */
+.loader{
+  position:fixed;inset:0;z-index:100;background:var(--bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:18px;transition:opacity .7s,visibility 0s .7s;
+}
+.loader-mark{font-size:22px;font-weight:700;letter-spacing:.42em;text-indent:.42em;color:var(--ink)}
+.loader-pct{font-size:11px;letter-spacing:.3em;color:var(--gold);font-variant-numeric:tabular-nums}
+.loader.done{opacity:0;visibility:hidden;pointer-events:none}
+
+/* ---------- fixed nav ---------- */
+.nav{
+  position:fixed;inset:0 0 auto 0;z-index:60;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:22px min(5vw,44px);
+  mix-blend-mode:difference;pointer-events:none;
+}
+.nav *{pointer-events:auto}
+.logo{
+  font-size:20px;font-weight:700;letter-spacing:.42em;
+  text-indent:.42em;color:#fff;text-decoration:none;
+}
+.nav-links{display:flex;gap:30px}
+.nav-links a{
+  color:#fff;text-decoration:none;font-size:11px;
+  letter-spacing:.22em;text-transform:uppercase;opacity:.75;
+  transition:opacity .3s;
+}
+.nav-links a:hover{opacity:1}
+@media(max-width:720px){.nav-links{display:none}}
+
+/* ============================================================
+   SCROLL-VIDEO STAGES
+   ============================================================ */
+.stage{position:relative;height:520vh}
+.stage-menu{height:460vh}
+/* menu items inside a film caption */
+.caption .menu-items{margin-top:30px;max-width:480px}
+.caption .item{padding:13px 0}
+.caption .item dd{color:var(--gold);text-shadow:0 1px 10px rgba(10,8,6,.85)}
+.caption .menu-note{margin-top:26px;font-size:13px;color:var(--ink-dim);letter-spacing:.02em}
+.sticky{
+  position:sticky;top:0;height:100vh;height:100dvh;width:100%;
+  overflow:hidden;background:var(--bg);
+}
+.film,.film-poster{
+  position:absolute;inset:0;width:100%;height:100%;
+  object-fit:cover;display:block;
+}
+/* the poster is the exact first frame; it covers the video until the
+   first real seek has painted, so there is never a blank flash */
+.film-poster{z-index:1;transition:opacity .6s;pointer-events:none}
+.sticky.has-film .film-poster{opacity:0}
+/* darkening scrim so text always reads; the top-right vignette also
+   swallows the source-footage corner (delogo residue lives there) */
+.scrim{
+  position:absolute;inset:0;pointer-events:none;z-index:2;
+  background:
+    radial-gradient(46% 38% at 100% 0%,rgba(10,8,6,.94) 0%,rgba(10,8,6,.62) 52%,rgba(10,8,6,0) 100%),
+    linear-gradient(90deg,rgba(10,8,6,.86) 0%,rgba(10,8,6,.45) 42%,rgba(10,8,6,.05) 68%),
+    linear-gradient(0deg,rgba(10,8,6,.75) 0%,transparent 40%);
+}
+/* static film grain over the footage (fixed tile, no per-frame repaints) */
+.grain{
+  position:absolute;inset:0;pointer-events:none;z-index:2;
+  opacity:.07;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='240'%20height='240'%3E%3Cfilter%20id='n'%3E%3CfeTurbulence%20type='fractalNoise'%20baseFrequency='0.8'%20numOctaves='2'%20stitchTiles='stitch'/%3E%3CfeColorMatrix%20type='saturate'%20values='0'/%3E%3C/filter%3E%3Crect%20width='240'%20height='240'%20filter='url(%23n)'%20opacity='.55'/%3E%3C/svg%3E");
+  background-size:240px 240px;
+}
+.caption{
+  position:absolute;left:min(5vw,44px);z-index:3;
+  top:50%;transform:translateY(-50%);
+  width:min(560px,80vw);
+  opacity:0;will-change:opacity,transform;
+}
+.caption .eyebrow{display:block;margin-bottom:20px}
+.caption h1,.caption h2{margin-bottom:22px}
+/* longer headlines need a smaller size so they never overflow the viewport */
+.display.sm{font-size:clamp(2.1rem,5.2vw,4.4rem);line-height:.98}
+.stats{display:flex;gap:38px;margin-top:34px;flex-wrap:wrap}
+.stat b{
+  display:block;font-size:clamp(1.9rem,3.4vw,2.9rem);
+  font-weight:400;letter-spacing:-.04em;color:var(--gold);line-height:1;
+}
+.stat span{
+  display:block;margin-top:9px;font-size:10.5px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--ink-faint);
+}
+.quote{
+  font-family:var(--serif);font-style:italic;
+  font-size:clamp(1.2rem,2.1vw,1.7rem);line-height:1.42;
+  color:var(--ink);max-width:30ch;margin-top:26px;
+  padding-left:20px;border-left:1px solid var(--gold);
+}
+.cards{display:flex;gap:26px;margin-top:34px;flex-wrap:wrap}
+.card{flex:1 1 140px;min-width:140px;border-top:1px solid var(--line);padding-top:14px}
+.card b{display:block;font-size:12px;letter-spacing:.18em;text-transform:uppercase;margin-bottom:8px}
+.card p{font-size:13.5px;color:var(--ink-dim);line-height:1.5}
+
+.cta-row{display:flex;gap:14px;margin-top:34px;flex-wrap:wrap}
+.btn{
+  display:inline-block;padding:14px 30px;border-radius:100px;
+  font-size:11px;letter-spacing:.2em;text-transform:uppercase;
+  text-decoration:none;transition:all .35s cubic-bezier(.2,.7,.3,1);
+}
+.btn-solid{background:var(--ink);color:#0a0806;font-weight:600}
+.btn-solid:hover{background:var(--gold);color:#0a0806}
+.btn-ghost{border:1px solid var(--line);color:var(--ink)}
+.btn-ghost:hover{border-color:var(--ink);background:rgba(242,236,227,.06)}
+
+/* scroll cue */
+.cue{
+  position:absolute;bottom:34px;right:min(5vw,44px);z-index:3;
+  font-size:9.5px;letter-spacing:.34em;text-transform:uppercase;
+  color:var(--ink-faint);text-align:center;
+}
+.cue i{
+  display:block;width:1px;height:46px;margin:12px auto 0;
+  background:linear-gradient(var(--ink-faint),transparent);
+}
+/* progress bar */
+.prog{
+  position:absolute;bottom:0;left:0;height:2px;width:0%;
+  background:var(--gold);z-index:5;
+}
+
+/* ============================================================
+   STATIC SECTIONS
+   ============================================================ */
+section.pad{padding:clamp(90px,13vh,170px) 0}
+.sec-head{display:flex;justify-content:space-between;align-items:flex-end;
+  gap:30px;flex-wrap:wrap;margin-bottom:56px;
+  border-bottom:1px solid var(--line);padding-bottom:26px}
+.sec-head h2{font-size:clamp(2.1rem,5vw,4rem);letter-spacing:-.045em}
+
+/* menu */
+.menu-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:56px 70px}
+.menu-group h3{
+  font-size:11px;letter-spacing:.3em;text-transform:uppercase;
+  color:var(--gold);margin-bottom:24px;font-weight:600;
+}
+.item{
+  display:grid;grid-template-columns:1fr auto;gap:6px 18px;
+  padding:15px 0;border-bottom:1px solid var(--line);
+}
+.item dt{font-size:16.5px;letter-spacing:-.01em}
+.item dd{font-size:14px;color:var(--ink-faint);font-variant-numeric:tabular-nums}
+.item .desc{grid-column:1/-1;font-size:13px;color:var(--ink-dim);line-height:1.45}
+.menu-note{margin-top:44px;font-size:13px;color:var(--ink-faint);letter-spacing:.02em}
+
+/* visit */
+.visit{display:grid;grid-template-columns:1.15fr 1fr;gap:70px;align-items:start}
+@media(max-width:860px){.visit{grid-template-columns:1fr;gap:44px}}
+.info{display:grid;gap:1px;background:var(--line);border:1px solid var(--line)}
+.info div{background:var(--bg);padding:22px 24px}
+.info dt{font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:8px}
+.info dd{font-size:15.5px;line-height:1.5}
+
+/* newsletter */
+.news{border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  padding:clamp(56px,9vh,96px) 0;text-align:center}
+.news h2{font-size:clamp(1.7rem,4vw,3rem);margin-bottom:14px}
+.news p{color:var(--ink-dim);margin-bottom:30px;font-size:15px}
+.field{display:flex;gap:10px;max-width:430px;margin-inline:auto;flex-wrap:wrap}
+.field input{
+  flex:1 1 200px;background:transparent;border:1px solid var(--line);
+  border-radius:100px;padding:14px 22px;color:var(--ink);
+  font-family:inherit;font-size:14px;outline:none;transition:border-color .3s;
+}
+.field input:focus{border-color:var(--gold)}
+.field button{
+  padding:14px 30px;border-radius:100px;border:0;cursor:pointer;
+  background:var(--ink);color:#0a0806;font-family:inherit;font-weight:600;
+  font-size:11px;letter-spacing:.2em;text-transform:uppercase;transition:background .3s;
+}
+.field button:hover{background:var(--gold)}
+
+/* footer */
+footer{padding:70px 0 46px}
+.foot-top{display:flex;justify-content:space-between;gap:36px;flex-wrap:wrap;margin-bottom:56px}
+.foot-mark{font-size:clamp(3.4rem,12vw,9rem);font-weight:700;letter-spacing:.06em;line-height:.8;color:rgba(242,236,227,.07)}
+.foot-links{display:flex;gap:26px;flex-wrap:wrap}
+.foot-links a{color:var(--ink-dim);text-decoration:none;font-size:11px;letter-spacing:.18em;text-transform:uppercase;transition:color .3s}
+.foot-links a:hover{color:var(--gold)}
+.foot-bot{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;
+  border-top:1px solid var(--line);padding-top:26px;font-size:11.5px;color:var(--ink-faint)}
+
+/* reveal-on-scroll */
+.rise{opacity:0;transform:translateY(26px);transition:opacity .9s cubic-bezier(.2,.7,.3,1),transform .9s cubic-bezier(.2,.7,.3,1)}
+.rise.in{opacity:1;transform:none}
+
+@media (prefers-reduced-motion:reduce){
+  .rise{opacity:1;transform:none;transition:none}
+  html{scroll-behavior:auto}
+  .film-poster{transition:none}
+  .loader{transition:none}
+}
