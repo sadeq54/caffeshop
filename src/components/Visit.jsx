@@ -1,6 +1,6 @@
 export default function Visit() {
   return (
-    <section className="pad" id="visit">
+    <section className="pad visit-section" id="visit">
       <div className="wrap">
         <div className="visit">
           <div className="rise">

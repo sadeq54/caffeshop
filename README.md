@@ -44,15 +44,29 @@ native `scroll-snap` carousel instead. Scroll-hijacking a phone is a fight the
 user always loses. The mode is decided during the first render, so the rail
 never flashes in the wrong one.
 
-**The sign-off.** The rail ends on the brand rather than trailing off. Across
-the last fifth of the pan (`--e`), B and K fly in from beyond both edges with a
-counter-rotation while L rises from below, locking into one giant wordmark; a
-warm bloom fades up behind them. At the same time the rail writes `--brand-out`
-onto the root element and the corner logo fades and scales away, so the name
-reads as handed over from the nav to the page. The rule, closing note and CTA
-run on a second, later variable (`--e2`), so nothing flies across the copy
-while the letters are still travelling. In swipe mode both variables are pinned
-to 1 — there is no pan to drive the assembly, so it simply arrives built.
+**The gate.** The rail does not end at the last card; it keeps a **tail** of
+two viewport-heights of scroll *while still pinned*, and the wordmark moment
+plays out over the board it belongs to. That tail is what joins this section to
+the next, and it is deliberately inside this stage rather than in an interlude
+section of its own — a separate section between them just reads as dead scroll.
+
+The rail's height is `viewport + trackWidth + tail`, and the pan is mapped to
+`progress / panEnd` so the sideways travel finishes exactly where the tail
+begins. Then, across the tail:
+
+1. B and K fly in from beyond both edges with a counter-rotation while L rises
+   from below, locking into one giant wordmark over a warm bloom. The cards
+   dim away underneath and the gold rule draws.
+2. The corner logo fades and scales out (`--brand-out` on the root), so the
+   name reads as handed from the nav to the page.
+3. The letters then **open outward and grow past the frame** while `Visit`,
+   pulled up `-100vh`, rises through the gap; the corner logo comes back as
+   they part. The rail's cards and progress bar are driven to zero by the time
+   the room is up, or they ghost behind its copy.
+
+`Visit` is `position: relative; z-index: 1` so it paints over the rail's
+sticky. In swipe mode and under reduced motion the gate is not rendered and the
+negative margin is dropped, so the carousel simply ends and the room follows.
 
 **The detail.** Any card opens a native `<dialog>` via `showModal()`, which
 brings the focus trap, the inert background, Esc-to-close and the top layer
