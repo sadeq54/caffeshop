@@ -8,6 +8,25 @@ import { useEffect } from 'react'
    progress windows (data-in / data-out). The mp4 is blob-loaded
    (always seekable, real download %) and seeks are coalesced —
    never issued while the decoder is still resolving the last one.
+
+   SCRUB WINDOW
+     scrubStart / scrubEnd carve the film out of the stage's scroll
+     range. Progress before scrubStart is the APERTURE phase (the
+     stage irises in over the previous one) and progress after
+     scrubEnd is the HOLD phase (last frame held, still pinned,
+     while the NEXT stage irises in over it). Captions are painted
+     against the remapped film progress, so their windows stay
+     authored in plain 0..1 film time.
+
+   APERTURE (iris)
+     The media layer is clipped by circle(--iris) and the exact same
+     radius drives an unclipped ring, so the rim light sits precisely
+     on the cut. Radius is computed in px (half the viewport diagonal
+     at full open) rather than %, because CSS resolves circle(%)
+     against sqrt(w²+h²)/sqrt(2) and the ring could not match it.
+     clip-path circle() is compositor-driven; the clip is dropped
+     entirely once fully open, and heavy filters are kept off this
+     layer (captions blur, media does not).
    ============================================================ */
 export default function useScrollFilm({
   stageRef,
@@ -18,6 +37,9 @@ export default function useScrollFilm({
   src,
   srcMobile,
   lazy = false,
+  scrubStart = 0,
+  scrubEnd = 1,
+  iris = false,
   onProgress,
   onReady,
 }) {
@@ -46,6 +68,10 @@ export default function useScrollFilm({
     let duration = 0
     let blobUrl = null
     let started = false
+    let irisOpen = null
+    const aperture = iris && scrubStart > 0
+    const aperturePhase = (p) => (aperture ? clamp01(p / scrubStart) : 1)
+    const filmPhase = (p) => clamp01((p - scrubStart) / (scrubEnd - scrubStart))
     const aborter = new AbortController()
 
     function measure() {
@@ -55,12 +81,43 @@ export default function useScrollFilm({
       return r.top
     }
 
-    function paintCaptions(p) {
+    function paintAperture(p) {
+      if (!aperture) return
+      const t = aperturePhase(p)
+      // full-open radius reaches the viewport corners with a little margin
+      const full = Math.hypot(window.innerWidth, window.innerHeight) / 2 + 2
+      if (reduce) {
+        // no zoom, no eased wipe: a plain scroll-linked crossfade instead
+        stage.style.setProperty('--iris', full + 'px')
+        stage.style.setProperty('--iris-scale', '1')
+        stage.style.setProperty('--iris-ring', '0')
+        sticky.style.opacity = t.toFixed(3)
+        return
+      }
+      const e = t * t * (3 - 2 * t)
+      stage.style.setProperty('--iris', (e * full).toFixed(1) + 'px')
+      stage.style.setProperty('--iris-scale', (1 + (1 - e) * 0.14).toFixed(4))
+      // rim light blooms as the aperture travels, gone before it settles
+      const ring = smooth(0, 0.14, t) * (1 - smooth(0.72, 1, t))
+      stage.style.setProperty('--iris-ring', ring.toFixed(3))
+      // drop the clip (and its compositing cost) once fully open
+      const open = t >= 1
+      if (open !== irisOpen) {
+        irisOpen = open
+        stage.classList.toggle('is-open', open)
+      }
+    }
+
+    function paintCaptions(fp, p) {
+      // Copy never sits over a half-open aperture: it is held back until the
+      // iris has almost finished travelling. Without this gate a caption whose
+      // window opens at ~0 is already part-faded-in during the whole reveal.
+      const gate = aperture ? smooth(0.85, 1, aperturePhase(p)) : 1
       for (const c of captions) {
         const a = +c.dataset.in
         const b = +c.dataset.out
         const fade = 0.1
-        const o = smooth(a - fade, a, p) * (1 - smooth(b, b + fade, p))
+        const o = gate * smooth(a - fade, a, fp) * (1 - smooth(b, b + fade, fp))
         c.style.opacity = o.toFixed(3)
         if (!reduce) {
           c.style.transform = 'translateY(calc(-50% + ' + ((1 - o) * 26).toFixed(1) + 'px))'
@@ -68,8 +125,8 @@ export default function useScrollFilm({
         }
         c.style.pointerEvents = o > 0.5 ? 'auto' : 'none'
       }
-      if (cue) cue.style.opacity = (1 - smooth(0, 0.06, p)).toFixed(3)
-      if (prog) prog.style.width = (p * 100).toFixed(2) + '%'
+      if (cue) cue.style.opacity = (1 - smooth(0, 0.06, fp)).toFixed(3)
+      if (prog) prog.style.width = (fp * 100).toFixed(2) + '%'
     }
 
     async function loadFilm() {
@@ -108,11 +165,12 @@ export default function useScrollFilm({
     function loop() {
       const top = measure()
       maybeStart(top)
-      shown = reduce ? target : shown + (target - shown) * 0.11
+      shown = reduce ? target : shown + (target - shown) * 0.11 // inertia
       if (Math.abs(shown - target) < 0.0002) shown = target
+      const fp = filmPhase(shown)
       if (duration > 0 && !video.seeking && video.readyState >= 2) {
-        const t = clamp01(shown) * Math.max(0, duration - 0.06)
-        const eps = isMobile() ? 0.02 : 0.008
+        const t = fp * Math.max(0, duration - 0.06)
+        const eps = isMobile() ? 0.02 : 0.008 // coarser step on phones = fewer decodes
         if (Math.abs(video.currentTime - t) > eps) {
           try {
             video.currentTime = t
@@ -121,7 +179,8 @@ export default function useScrollFilm({
           }
         }
       }
-      paintCaptions(shown)
+      paintAperture(shown)
+      paintCaptions(fp, shown)
       raf = requestAnimationFrame(loop)
     }
 
@@ -131,6 +190,8 @@ export default function useScrollFilm({
     const onCanPlay = () => {
       if (onReady) onReady()
     }
+    // the poster (exact first frame) stays up until a real frame has painted —
+    // on iOS a seeked-but-never-played muted video can stay blank otherwise
     const onFirstSeek = () => sticky.classList.add('has-film')
     video.addEventListener('loadedmetadata', onMeta)
     video.addEventListener('canplay', onCanPlay)

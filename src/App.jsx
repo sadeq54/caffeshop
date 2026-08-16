@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import Nav from './components/Nav.jsx'
 import FilmStage from './components/FilmStage.jsx'
+import BridgeFilm from './components/BridgeFilm.jsx'
 import MenuFilm from './components/MenuFilm.jsx'
 import Visit from './components/Visit.jsx'
 import Newsletter from './components/Newsletter.jsx'
@@ -33,6 +34,7 @@ export default function App() {
     <>
       <Nav />
       <FilmStage />
+      <BridgeFilm />
       <MenuFilm />
       <Visit />
       <Newsletter />

@@ -12,6 +12,43 @@ npm run dev      # http://localhost:5199
 npm run build    # production build in dist/
 ```
 
+## Page shape
+
+Three scroll-scrubbed film stages, each pinned for its own scroll budget
+(viewport-heights):
+
+| stage | height | pin | iris | scrub | hold |
+|---|---|---|---|---|---|
+| hero (`film.mp4`) | 620vh | 100 | - | 420 | 100 |
+| bridge (`bridge-film.mp4`) | 500vh | 100 | 100 | 200 | 100 |
+| menu (`menu-film.mp4`) | 560vh | 100 | 100 | 360 | - |
+
+## The aperture transition
+
+Each stage after the first is pulled up `margin-top: -200vh` so its **iris
+phase overlaps the previous stage's hold phase**. During that overlap both
+stickies are pinned: the outgoing film holds its last frame while the incoming
+one opens through it in a growing circle, like a camera shutter.
+
+- Only `.film-wrap` (the media layer) is clipped, via
+  `clip-path: circle(var(--iris) at 50% 50%)`. `clip-path: circle()` is
+  compositor-driven, so heavy filters are kept off this layer (captions blur,
+  media never does). The clip is dropped entirely (`.is-open`) once fully open.
+- `--iris` is set in **pixels** by the rAF loop, not `%`, because CSS resolves
+  `circle(%)` against `sqrt(w²+h²)/sqrt(2)`; the unclipped `.iris-ring` rim
+  light reads the same variable and so sits exactly on the cut.
+- The incoming film also eases from `scale(1.14)` to `1` as the aperture opens.
+- Captions are gated behind the aperture (they only fade in over the last 15%
+  of the travel), and each stage's last caption is authored to be fully out by
+  film-end, so text never collides across the handoff.
+- `prefers-reduced-motion`: no iris and no zoom — the incoming stage
+  crossfades on scroll position instead.
+
+The scrub window (`scrubStart` / `scrubEnd` in `useScrollFilm`) carves the film
+out of the stage's range and remaps caption windows, so caption `data-in` /
+`data-out` stay authored in plain 0..1 film time regardless of the iris/hold
+padding around them.
+
 ## How the film stage works
 
 - `.stage` is 520vh tall; inside it a sticky 100vh viewport holds the video.
@@ -53,6 +90,17 @@ under the four captions (hero / promise / origin / craft).
 **Menu** (`menu-film.mp4`): espresso drip 7019759 (ss 7) → double pour
 35756026 (ss 3) → V60 window light 37396049 (ss 1) → falling beans 32896425
 (ss 7).
+
+**Bridge** (`bridge-film.mp4`): the original PixVerse AI café reel, 10s. Its
+watermark is wiped at source and it is upscaled 2x before encoding:
+
+```bash
+ffmpeg -i PixVerse_*.mp4 -vf "delogo=x=758:y=20:w=256:h=42" frames/f_%04d.png
+realesrgan-ncnn-vulkan -i frames -o up -n realesr-animevideov3 -s 2 -f png
+ffmpeg -framerate 24 -i up/f_%04d.png -vf "scale=1920:1080:flags=lanczos,eq=contrast=1.03:saturation=0.95" \
+  -c:v libx264 -preset slow -crf 19 -pix_fmt yuv420p -g 8 -keyint_min 8 -sc_threshold 0 \
+  -movflags +faststart public/bridge-film.mp4
+```
 
 Poster = first frame of each final. If you ever swap in footage with a corner
 watermark again: wipe it at source (`delogo=x=..:y=..:w=..:h=..` before

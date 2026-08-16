@@ -22,6 +22,9 @@ export default function FilmStage() {
     progRef,
     src: '/film.mp4',
     srcMobile: '/film-m.mp4',
+    // the last 100vh of the stage is a hold: the film has finished, the
+    // sticky stays pinned, and the bridge irises in over a held frame
+    scrubEnd: 0.8077,
     onProgress: setProgress,
     onReady: () => setReady(true),
   })
@@ -34,19 +37,21 @@ export default function FilmStage() {
       </div>
 
       <div className="sticky" ref={stickyRef}>
-        <video
-          className="film"
-          ref={videoRef}
-          muted
-          playsInline
-          preload="auto"
-          disableRemotePlayback
-          aria-hidden="true"
-          tabIndex={-1}
-        />
-        <img className="film-poster" src="/poster.jpg" alt="" />
-        <div className="scrim" />
-        <div className="grain" />
+        <div className="film-wrap">
+          <video
+            className="film"
+            ref={videoRef}
+            muted
+            playsInline
+            preload="auto"
+            disableRemotePlayback
+            aria-hidden="true"
+            tabIndex={-1}
+          />
+          <img className="film-poster" src="/poster.jpg" alt="" />
+          <div className="scrim" />
+          <div className="grain" />
+        </div>
 
         {/* 1 · HERO */}
         <div className="caption" data-in="0" data-out="0.15">
@@ -103,7 +108,8 @@ export default function FilmStage() {
         </div>
 
         {/* 4 · THE CRAFT */}
-        <div className="caption" data-in="0.80" data-out="0.97">
+        {/* out by film-end so the screen is clear when the bridge irises in */}
+        <div className="caption" data-in="0.78" data-out="0.88">
           <span className="eyebrow">The craft</span>
           <h2 className="display sm">
             Eighteen&nbsp;grams.<br />
