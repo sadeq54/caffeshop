@@ -12,6 +12,7 @@ export default function MenuRail() {
   const stageRef = useRef(null)
   const trackRef = useRef(null)
   const progRef = useRef(null)
+  const outroRef = useRef(null)
   const geo = useRef({ distance: 0, centers: [] })
   // decided during the first render so the rail never flashes in the wrong mode
   const [mode] = useState(() => {
@@ -28,6 +29,8 @@ export default function MenuRail() {
     const track = trackRef.current
     const prog = progRef.current
     const panels = Array.from(track.children)
+    const outro = outroRef.current
+    const letters = outro ? Array.from(outro.querySelectorAll('.outro-l')) : []
     const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v)
 
     let raf = 0
@@ -63,6 +66,25 @@ export default function MenuRail() {
         const d = (centers[i] + x - vw / 2) / vw
         img.style.transform = `translate3d(${(-d * 30).toFixed(1)}px,0,0) scale(1.14)`
       }
+
+      // the sign-off: last fifth of the rail assembles the wordmark
+      if (outro && letters.length === 3) {
+        const e = clamp01((shown - 0.8) / 0.2)
+        const k = e * e * (3 - 2 * e)
+        const away = 1 - k
+        letters[0].style.transform =
+          `translate3d(${(-away * 0.62 * vw).toFixed(1)}px,${(away * 44).toFixed(1)}px,0) rotate(${(-away * 11).toFixed(2)}deg)`
+        letters[1].style.transform =
+          `translate3d(0,${(away * 130).toFixed(1)}px,0) scale(${(1 - away * 0.28).toFixed(3)})`
+        letters[2].style.transform =
+          `translate3d(${(away * 0.62 * vw).toFixed(1)}px,${(-away * 44).toFixed(1)}px,0) rotate(${(away * 11).toFixed(2)}deg)`
+        outro.style.setProperty('--e', k.toFixed(3))
+        // rule, note and CTA wait until the letters have almost landed, so
+        // nothing flies across the copy
+        outro.style.setProperty('--e2', clamp01((k - 0.62) / 0.38).toFixed(3))
+        // the corner logo dissolves as the page takes the name over
+        document.documentElement.style.setProperty('--brand-out', k.toFixed(3))
+      }
       raf = requestAnimationFrame(frame)
     }
 
@@ -74,6 +96,7 @@ export default function MenuRail() {
       window.removeEventListener('resize', layout)
       stage.style.height = ''
       track.style.transform = ''
+      document.documentElement.style.setProperty('--brand-out', '0')
     }
   }, [mode])
 
@@ -137,10 +160,22 @@ export default function MenuRail() {
             </Fragment>
           ))}
 
-          <div className="rail-chapter rail-chapter--end">
+          {/* the sign-off: the three letters fly in from off-frame and lock
+              together as the rail runs out, while the corner logo hands over */}
+          <div className="rail-outro" ref={outroRef}>
+            <div className="outro-mark" role="img" aria-label="BLK">
+              <span className="outro-l" aria-hidden="true">B</span>
+              <span className="outro-l" aria-hidden="true">L</span>
+              <span className="outro-l" aria-hidden="true">K</span>
+            </div>
+            <span className="outro-rule" aria-hidden="true" />
             <p className="menu-note">
               Oat, almond and full-fat — no charge for the swap. Prices in JD.
             </p>
+            <a className="btn btn-solid btn-icon" href="#visit">
+              <span>Find us</span>
+              <i className="btn-dot" aria-hidden="true">↗</i>
+            </a>
           </div>
         </div>
 

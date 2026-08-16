@@ -44,6 +44,16 @@ native `scroll-snap` carousel instead. Scroll-hijacking a phone is a fight the
 user always loses. The mode is decided during the first render, so the rail
 never flashes in the wrong one.
 
+**The sign-off.** The rail ends on the brand rather than trailing off. Across
+the last fifth of the pan (`--e`), B and K fly in from beyond both edges with a
+counter-rotation while L rises from below, locking into one giant wordmark; a
+warm bloom fades up behind them. At the same time the rail writes `--brand-out`
+onto the root element and the corner logo fades and scales away, so the name
+reads as handed over from the nav to the page. The rule, closing note and CTA
+run on a second, later variable (`--e2`), so nothing flies across the copy
+while the letters are still travelling. In swipe mode both variables are pinned
+to 1 — there is no pan to drive the assembly, so it simply arrives built.
+
 **The detail.** Any card opens a native `<dialog>` via `showModal()`, which
 brings the focus trap, the inert background, Esc-to-close and the top layer
 from the platform. On top of that: backdrop-click to dismiss, left/right arrow
