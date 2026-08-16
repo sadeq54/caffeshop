@@ -171,9 +171,13 @@ export default function MenuRail() {
   return (
     <section className={'menu-rail' + (mode ? ' is-' + mode : '')} id="menu" ref={stageRef}>
       <div className="rail-sticky">
-        {/* in swipe mode this is a real horizontal scroller; Lenis has to
-            keep its hands off the wheel while the pointer is over it */}
-        <div className="rail-track" ref={trackRef} data-lenis-prevent>
+        {/* No data-lenis-prevent here. In swipe mode this is a horizontal
+            scroller, and telling Lenis to ignore the wheel over it meant a
+            vertical wheel did nothing at all: the browser will not turn
+            vertical wheel into horizontal scroll, so the page simply stuck
+            whenever the pointer sat over the carousel. Touch and trackpad
+            still pan it sideways natively. */}
+        <div className="rail-track" ref={trackRef}>
           {/* Fragments keep the track's children flat, so each panel's own
               centre drives its parallax */}
           {GROUPS.map((g) => (

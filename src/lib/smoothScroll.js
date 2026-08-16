@@ -44,9 +44,33 @@ export function initSmoothScroll() {
     const el = document.querySelector(id)
     if (!el) return
     e.preventDefault()
-    lenis.scrollTo(el, { offset: 0 })
+    // force: an overlay that locked scrolling (the mobile nav sheet) is still
+    // stopped at the moment its own link is clicked, and a normal scrollTo
+    // would be discarded before the overlay's effect can start Lenis again
+    lenis.scrollTo(el, { offset: 0, force: true })
   }
   document.addEventListener('click', onClick)
+
+  // Landing on /#menu must actually arrive there. The browser performs its
+  // hash jump before these stages have measured themselves — the rail sets
+  // its own height in JS — so the target moves out from under it and the
+  // page stays at the top. Re-aim a few times while the layout settles.
+  if (location.hash && location.hash.length > 1) {
+    let target = null
+    try {
+      target = document.querySelector(location.hash)
+    } catch {
+      target = null
+    }
+    if (target) {
+      let tries = 0
+      const aim = () => {
+        lenis.scrollTo(target, { immediate: true })
+        if (++tries < 8) setTimeout(aim, 140)
+      }
+      setTimeout(aim, 120)
+    }
+  }
 
   window[KEY] = lenis
   lenis.destroyAll = () => {
