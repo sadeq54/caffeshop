@@ -30,10 +30,13 @@ export default function App() {
           }
         })
       },
-      { threshold: 0.16 },
+      // Fire BEFORE the element reaches the fold. At 0.16/no-margin the
+      // reveal only started once the block was well up the screen, so at
+      // speed you scrolled past a second of blank space while it faded in.
+      { threshold: 0.01, rootMargin: '0px 0px 20% 0px' },
     )
     els.forEach((el, i) => {
-      el.style.transitionDelay = (i % 3) * 90 + 'ms'
+      el.style.transitionDelay = (i % 3) * 60 + 'ms'
       io.observe(el)
     })
     return () => io.disconnect()
@@ -41,6 +44,10 @@ export default function App() {
 
   return (
     <>
+      {/* the browser scrollbar is hidden; this is its replacement */}
+      <div className="scroll-rail" aria-hidden="true">
+        <span />
+      </div>
       <Nav />
       <FilmStage />
       <BridgeFilm />

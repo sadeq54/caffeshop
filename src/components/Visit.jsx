@@ -8,8 +8,20 @@ export default function Visit() {
             overlap is what makes the parallax legible — flat columns
             side by side have nothing to travel against. */}
         <div className="visit-stack">
-          <figure className="vs-plate vs-plate--a rise" data-par="-1.8">
-            <img src="/room/room-a.webp" alt="" loading="lazy" width="900" height="1200" />
+          {/* The frame drifts against the page and the picture drifts again
+              inside it: two speeds on one plate. The in-frame drift must stay
+              under the over-scale headroom ((scale-1)/2 * height) or the
+              picture slides off its own frame and bares the backing. */}
+          <figure className="vs-plate vs-plate--a rise" data-par="-2.6">
+            <img
+              src="/room/room-a.webp"
+              alt=""
+              loading="lazy"
+              width="900"
+              height="1200"
+              data-par="0.32"
+              data-par-scale="1.26"
+            />
           </figure>
 
           <div className="vs-copy rise">
@@ -31,8 +43,16 @@ export default function Visit() {
             </div>
           </div>
 
-          <figure className="vs-plate vs-plate--b rise" data-par="-0.7">
-            <img src="/room/room-b.webp" alt="" loading="lazy" width="1000" height="750" />
+          <figure className="vs-plate vs-plate--b rise" data-par="1.6">
+            <img
+              src="/room/room-b.webp"
+              alt=""
+              loading="lazy"
+              width="1000"
+              height="750"
+              data-par="-0.32"
+              data-par-scale="1.26"
+            />
           </figure>
 
           <div className="vs-panel rise">

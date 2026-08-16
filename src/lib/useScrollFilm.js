@@ -75,12 +75,17 @@ export default function useScrollFilm({
     const filmPhase = (p) => clamp01((p - scrubStart) / (scrubEnd - scrubStart))
     const aborter = new AbortController()
 
+    let rect = null
     function measure() {
-      const r = stage.getBoundingClientRect()
+      rect = stage.getBoundingClientRect()
       const total = stage.offsetHeight - window.innerHeight
-      target = total > 0 ? clamp01(-r.top / total) : 0
-      return r.top
+      target = total > 0 ? clamp01(-rect.top / total) : 0
+      return rect.top
     }
+    // one viewport of slack each way, because these stages deliberately
+    // overlap their neighbours while one irises over the other
+    const nearViewport = () =>
+      rect && rect.bottom > -window.innerHeight && rect.top < window.innerHeight * 2
 
     function paintAperture(p) {
       if (!aperture) return
@@ -161,6 +166,9 @@ export default function useScrollFilm({
       } catch (err) {
         if (err && err.name === 'AbortError') return
         video.src = url // fall back to normal streaming
+        // the poster alone is a perfectly good page: never hold the site
+        // hostage to a film that will not arrive
+        if (onReady) onReady()
       }
     }
 
@@ -168,13 +176,27 @@ export default function useScrollFilm({
       if (started || reduce) return
       if (!lazy || stageTop < window.innerHeight * 2.5) {
         started = true
-        loadFilm()
+        // Let the poster and fonts win the connection first. The poster is
+        // this film's own first frame, so the stage looks finished while a
+        // multi-megabyte file is still arriving behind it.
+        if ('requestIdleCallback' in window) {
+          window.requestIdleCallback(loadFilm, { timeout: 1500 })
+        } else {
+          setTimeout(loadFilm, 300)
+        }
       }
     }
 
     function loop() {
       const top = measure()
       maybeStart(top)
+      // far off screen: nothing it paints can be seen, so skip the seek and
+      // the per-caption writes entirely and just keep the frame ticking
+      if (!nearViewport()) {
+        shown = target
+        raf = requestAnimationFrame(loop)
+        return
+      }
       shown = reduce ? target : shown + (target - shown) * SCRUB_LERP
       if (Math.abs(shown - target) < 0.0002) shown = target
       const fp = filmPhase(shown)
@@ -200,6 +222,10 @@ export default function useScrollFilm({
     const onCanPlay = () => {
       if (onReady) onReady()
     }
+    const onError = () => {
+      if (onReady) onReady()
+    }
+    video.addEventListener('error', onError)
     // the poster (exact first frame) stays up until a real frame has painted —
     // on iOS a seeked-but-never-played muted video can stay blank otherwise
     const onFirstSeek = () => sticky.classList.add('has-film')
@@ -227,6 +253,7 @@ export default function useScrollFilm({
       aborter.abort()
       video.removeEventListener('loadedmetadata', onMeta)
       video.removeEventListener('canplay', onCanPlay)
+      video.removeEventListener('error', onError)
       video.removeEventListener('seeked', onFirstSeek)
       window.removeEventListener('pointerdown', prime)
       window.removeEventListener('touchstart', prime)

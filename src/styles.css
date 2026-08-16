@@ -22,6 +22,24 @@
 }
 /* no native smooth scroll: Lenis owns the easing and the two fight */
 html{-webkit-text-size-adjust:100%}
+/* the browser scrollbar is replaced by .scroll-rail; scrolling itself is
+   untouched, only the default chrome is hidden */
+html{scrollbar-width:none}
+html::-webkit-scrollbar{width:0;height:0}
+
+/* ---------- side scroll indicator ---------- */
+.scroll-rail{
+  position:fixed;top:0;right:0;z-index:70;
+  width:3px;height:100vh;height:100dvh;pointer-events:none;
+  background:rgba(242,236,227,.07);
+}
+.scroll-rail span{
+  display:block;width:100%;height:100%;
+  transform:scaleY(0);transform-origin:50% 0;
+  background:linear-gradient(180deg,var(--gold),rgba(201,144,63,.42));
+  box-shadow:0 0 12px rgba(201,144,63,.45);
+}
+@media(max-width:600px){.scroll-rail{width:2px}}
 body{
   background:var(--bg);color:var(--ink);font-family:var(--sans);
   font-weight:400;line-height:1.55;overflow-x:hidden;
@@ -30,9 +48,14 @@ body{
 img{max-width:100%;display:block}
 
 /* ---------- shared type ---------- */
+/* Mobile first: small caps start at a readable size and only tighten once
+   there is room. Everything under 11px failed the audit on every device. */
 .eyebrow{
-  font-size:10.5px;letter-spacing:.3em;text-transform:uppercase;
+  font-size:11.5px;letter-spacing:.26em;text-transform:uppercase;
   color:var(--gold);font-weight:500;
+}
+@media(min-width:768px){
+  .eyebrow{font-size:10.5px;letter-spacing:.3em}
 }
 h1,h2,h3{
   font-family:var(--display);font-optical-sizing:auto;
@@ -77,16 +100,18 @@ h1,h2,h3{
 .logo{
   font-size:20px;font-weight:700;letter-spacing:.42em;
   text-indent:.42em;color:#fff;text-decoration:none;
+  display:inline-flex;align-items:center;min-height:44px;
   /* hands the name over to the page as the rail's wordmark assembles */
   opacity:calc(1 - var(--brand-out,0));
   transform:scale(calc(1 + var(--brand-out,0) * .3));
   transform-origin:0 50%;
 }
-.nav-links{display:flex;gap:30px}
+.nav-links{display:flex;gap:12px;margin-right:-12px}
 .nav-links a{
   color:#fff;text-decoration:none;font-size:11px;
   letter-spacing:.22em;text-transform:uppercase;opacity:.75;
   transition:opacity .3s;
+  display:inline-flex;align-items:center;min-height:44px;padding:0 12px;
 }
 .nav-links a:hover{opacity:1}
 @media(max-width:720px){.nav-links{display:none}}
@@ -126,9 +151,10 @@ h1,h2,h3{
 }
 .rail-chapter h2{font-size:clamp(1.8rem,3.3vw,2.9rem)}
 .rail-chapter-count{
-  font-size:10px;letter-spacing:.24em;text-transform:uppercase;
-  color:rgba(242,236,227,.52);
+  font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;
+  color:rgba(242,236,227,.62);
 }
+@media(min-width:768px){.rail-chapter-count{font-size:10px;letter-spacing:.24em}}
 .rail-chapter--end{width:clamp(240px,26vw,380px)}
 .rail-chapter--end .menu-note{margin:0;max-width:32ch}
 
@@ -156,7 +182,6 @@ h1,h2,h3{
 .gate-l{
   display:block;font-size:clamp(4.6rem,17vw,14rem);line-height:.86;
   font-weight:500;letter-spacing:-.02em;opacity:.2;
-  will-change:transform,opacity;
 }
 .gate-rule{
   display:block;height:1px;width:min(560px,64vw);background:var(--gold);
@@ -196,8 +221,10 @@ footer{position:relative;z-index:1}
 }
 .rail-img{
   width:100%;height:100%;object-fit:cover;display:block;
-  /* over-scaled so the image can slide inside its frame without edges */
-  transform:scale(1.2);will-change:transform;
+  /* over-scaled so the image can slide inside its frame without edges.
+     No will-change: translate3d already promotes these, and 15 permanent
+     layers is real GPU memory on a phone. */
+  transform:scale(1.2);
 }
 /* the affordance: this card opens */
 .rail-open{
@@ -265,7 +292,9 @@ footer{position:relative;z-index:1}
 .dd:not([open]){display:none}
 .dd::backdrop{background:rgba(5,4,3,.84)}
 .dd-panel{
-  position:relative;width:min(1040px,92vw);max-height:88dvh;overflow:auto;
+  position:relative;width:min(1040px,92vw);max-height:88dvh;
+  /* scrolls vertically only: nothing here may ever run off the side */
+  overflow-y:auto;overflow-x:hidden;
   display:grid;grid-template-columns:1.02fr .98fr;gap:6px;
   padding:6px;border-radius:26px;
   background:rgba(242,236,227,.05);border:1px solid var(--line);
@@ -297,7 +326,13 @@ footer{position:relative;z-index:1}
   display:flex;align-items:center;justify-content:space-between;gap:14px;
   margin-top:auto;padding-top:16px;
 }
-.dd-count{font-size:11px;letter-spacing:.2em;color:var(--ink-dim);font-variant-numeric:tabular-nums}
+.dd-count{
+  font-size:11px;letter-spacing:.2em;color:var(--ink-dim);
+  font-variant-numeric:tabular-nums;white-space:nowrap;
+}
+/* grid children default to min-content width and will push a panel wider
+   than its own box; this is what let the dialog scroll sideways */
+.dd-panel>*,.dd-body>*,.dd-meta>*{min-width:0}
 .dd-close{
   position:absolute;top:16px;right:16px;z-index:2;
   width:38px;height:38px;border-radius:50%;cursor:pointer;
@@ -308,16 +343,30 @@ footer{position:relative;z-index:1}
 .dd-close:hover{background:rgba(10,8,6,.95);border-color:var(--ink-dim)}
 
 @media(max-width:860px){
-  .dd-panel{grid-template-columns:1fr;max-height:92dvh}
+  .dd-panel{grid-template-columns:1fr;max-height:92dvh;width:min(1040px,94vw)}
   .dd-figure{aspect-ratio:16/11}
   .dd-meta{grid-template-columns:1fr}
-  /* the panel scrolls on a phone, so paging stays pinned to its floor */
+  .dd-body{padding:20px 18px}
+  /* The panel scrolls on a phone, so paging stays pinned to its floor.
+     Two equal columns instead of a flex row: a row of two buttons plus a
+     counter cannot fit 360px, and it was squeezing the count until it
+     wrapped and pushing the nav past the edge. */
   .dd-nav{
-    position:sticky;bottom:0;margin-top:8px;
-    margin-inline:calc(clamp(24px,3vw,42px) * -1);
-    padding:14px clamp(24px,3vw,42px) calc(6px + env(safe-area-inset-bottom));
-    background:linear-gradient(0deg,rgba(10,8,6,.97) 62%,rgba(10,8,6,0));
+    position:sticky;bottom:0;margin:10px -18px 0;
+    display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:center;
+    padding:12px 18px calc(8px + env(safe-area-inset-bottom));
+    /* solid, so the spec rows cannot ghost through the paging controls;
+       the fade lives above it instead of inside it */
+    background:rgba(10,8,6,.985);
   }
+  .dd-nav::before{
+    content:"";position:absolute;left:0;right:0;bottom:100%;height:24px;
+    background:linear-gradient(0deg,rgba(10,8,6,.985),rgba(10,8,6,0));
+    pointer-events:none;
+  }
+  .dd-count{grid-column:1/-1;order:-1;text-align:center}
+  .dd-nav .btn{width:100%;justify-content:center;padding-inline:14px}
+  .dd-nav .btn-icon{justify-content:space-between;padding-right:7px}
 }
 @media (prefers-reduced-motion:no-preference){
   .dd[open] .dd-panel{animation:dd-in .5s var(--ease) both}
@@ -381,6 +430,9 @@ footer{position:relative;z-index:1}
   background-image:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='240'%20height='240'%3E%3Cfilter%20id='n'%3E%3CfeTurbulence%20type='fractalNoise'%20baseFrequency='0.8'%20numOctaves='2'%20stitchTiles='stitch'/%3E%3CfeColorMatrix%20type='saturate'%20values='0'/%3E%3C/filter%3E%3Crect%20width='240'%20height='240'%20filter='url(%23n)'%20opacity='.55'/%3E%3C/svg%3E");
   background-size:240px 240px;
 }
+/* a full-screen blend mode over every film stage is a real compositing cost
+   on a phone GPU, for a texture nobody sees at that size */
+@media(max-width:767px){.grain{display:none}}
 .caption{
   position:absolute;left:min(5vw,44px);z-index:3;
   top:50%;transform:translateY(calc(-50% + var(--enter,0px)));
@@ -454,9 +506,10 @@ footer{position:relative;z-index:1}
   font-weight:400;letter-spacing:-.04em;color:var(--gold);line-height:1;
 }
 .stat span{
-  display:block;margin-top:9px;font-size:10.5px;letter-spacing:.2em;
-  text-transform:uppercase;color:rgba(242,236,227,.58);
+  display:block;margin-top:9px;font-size:11.5px;letter-spacing:.16em;
+  text-transform:uppercase;color:rgba(242,236,227,.62);
 }
+@media(min-width:768px){.stat span{font-size:10.5px;letter-spacing:.2em}}
 .quote{
   font-family:var(--serif);font-style:italic;
   font-size:clamp(1.2rem,2.1vw,1.7rem);line-height:1.42;
@@ -571,9 +624,10 @@ section.pad{padding:clamp(90px,13vh,170px) 0}
   box-shadow:inset 0 1px 0 rgba(242,236,227,.10);
 }
 .info dt{
-  font-size:10px;letter-spacing:.24em;text-transform:uppercase;
-  color:rgba(242,236,227,.62);margin-bottom:9px;
+  font-size:11px;letter-spacing:.2em;text-transform:uppercase;
+  color:rgba(242,236,227,.72);margin-bottom:9px;
 }
+@media(min-width:768px){.info dt{font-size:10px;letter-spacing:.24em}}
 .info dd{font-size:15.5px;line-height:1.55}
 
 /* newsletter — editorial split: the ask on the left, the form on the right */
@@ -621,9 +675,10 @@ section.pad{padding:clamp(90px,13vh,170px) 0}
   box-shadow:inset 0 1px 0 rgba(242,236,227,.10);
 }
 .field-label{
-  font-size:10px;letter-spacing:.24em;text-transform:uppercase;
-  color:rgba(242,236,227,.62);
+  font-size:11px;letter-spacing:.2em;text-transform:uppercase;
+  color:rgba(242,236,227,.72);
 }
+@media(min-width:768px){.field-label{font-size:10px;letter-spacing:.24em}}
 .field-core input{
   width:100%;padding:0;border:0;outline:none;background:transparent;
   color:var(--ink);font-family:inherit;font-size:16px;letter-spacing:-.005em;
@@ -638,8 +693,13 @@ section.pad{padding:clamp(90px,13vh,170px) 0}
 footer{padding:70px 0 46px}
 .foot-top{display:flex;justify-content:space-between;gap:36px;flex-wrap:wrap;margin-bottom:56px}
 .foot-mark{font-size:clamp(3.4rem,12vw,9rem);font-weight:700;letter-spacing:.06em;line-height:.8;color:rgba(242,236,227,.07)}
-.foot-links{display:flex;gap:26px;flex-wrap:wrap}
-.foot-links a{color:var(--ink-dim);text-decoration:none;font-size:11px;letter-spacing:.18em;text-transform:uppercase;transition:color .3s}
+.foot-links{display:flex;gap:8px 18px;flex-wrap:wrap;margin-left:-10px}
+.foot-links a{
+  color:var(--ink-dim);text-decoration:none;font-size:11.5px;
+  letter-spacing:.16em;text-transform:uppercase;transition:color .3s;
+  /* the label stays small; the tappable box does not */
+  padding:13px 10px;
+}
 .foot-links a:hover{color:var(--gold)}
 .foot-bot{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;
   border-top:1px solid var(--line);padding-top:26px;font-size:11.5px;color:var(--ink-dim)}
@@ -647,7 +707,8 @@ footer{padding:70px 0 46px}
 /* reveal-on-scroll */
 .rise{
   opacity:0;transform:translateY(30px);filter:blur(6px);
-  transition:opacity .9s var(--ease),transform .9s var(--ease),filter .9s var(--ease);
+  /* short enough to finish before a fast scroll carries it up the screen */
+  transition:opacity .6s var(--ease),transform .7s var(--ease),filter .6s var(--ease);
 }
 .rise.in{opacity:1;transform:none;filter:none}
 

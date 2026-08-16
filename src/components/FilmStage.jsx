@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import useScrollFilm from '../lib/useScrollFilm.js'
 
 /* Hero film: 520vh scroll stage, footage scrubbed by scroll,
@@ -13,6 +13,13 @@ export default function FilmStage() {
   const [ready, setReady] = useState(
     () => window.matchMedia('(prefers-reduced-motion: reduce)').matches,
   )
+
+  // Hard ceiling on the loader. A stalled film must never keep the site
+  // behind a black screen: the poster is already the first frame.
+  useEffect(() => {
+    const t = setTimeout(() => setReady(true), 4000)
+    return () => clearTimeout(t)
+  }, [])
 
   useScrollFilm({
     stageRef,
@@ -48,7 +55,15 @@ export default function FilmStage() {
             aria-hidden="true"
             tabIndex={-1}
           />
-          <img className="film-poster" src="/poster.jpg" alt="" />
+          {/* the poster IS the first frame, so the stage is complete the moment
+            it paints; the film arrives quietly behind it */}
+        <img
+          className="film-poster"
+          src="/poster.jpg"
+          alt=""
+          fetchPriority="high"
+          onLoad={() => setReady(true)}
+        />
           <div className="scrim" />
           <div className="grain" />
         </div>

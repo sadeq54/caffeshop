@@ -35,11 +35,15 @@ export function initParallax(root = document) {
     el,
     y: parseFloat(el.dataset.par) || 0,
     x: parseFloat(el.dataset.parX) || 0,
+    // images that drift INSIDE a clipped frame need over-scale, and the
+    // engine owns `transform`, so it has to carry the scale too
+    scale: parseFloat(el.dataset.parScale) || 0,
     top: 0,
     h: 0,
     live: false,
   }))
-  if (!items.length) return () => {}
+  const railFill = document.querySelector('.scroll-rail span')
+  if (!items.length && !railFill) return () => {}
 
   const measure = () => {
     for (const item of items) {
@@ -75,7 +79,13 @@ export function initParallax(root = document) {
       const q = (item.top + item.h / 2 - scrolled - vh / 2) / vh
       const ty = q * item.y * 100
       const tx = q * item.x * 100
-      item.el.style.transform = `translate3d(${tx.toFixed(2)}px,${ty.toFixed(2)}px,0)`
+      const sc = item.scale ? ` scale(${item.scale})` : ''
+      item.el.style.transform = `translate3d(${tx.toFixed(2)}px,${ty.toFixed(2)}px,0)${sc}`
+    }
+    if (railFill) {
+      const max = document.documentElement.scrollHeight - vh
+      const p = max > 0 ? Math.min(1, Math.max(0, scrolled / max)) : 0
+      railFill.style.transform = `scaleY(${p.toFixed(4)})`
     }
     raf = requestAnimationFrame(frame)
   }

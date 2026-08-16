@@ -88,6 +88,9 @@ export default function MenuRail() {
       for (let i = 0; i < panels.length; i++) {
         const panel = panels[i]
         const d = (centers[i] + x - vw / 2) / vw
+        // |d| > 1.2 is more than a screen away along the rail: not visible,
+        // so skip the writes. Most of the 19 panels are off-frame at any time.
+        if (d < -1.2 || d > 1.2) continue
         const img = panel.querySelector('.rail-img')
         if (img) img.style.transform = `translate3d(${(-d * 88).toFixed(1)}px,0,0) scale(1.2)`
         if (panel.classList.contains('rail-card')) {
