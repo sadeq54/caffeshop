@@ -161,9 +161,16 @@ h1,h2,h3{
   display:block;height:1px;width:min(560px,64vw);background:var(--gold);
   transform:scaleX(0);transform-origin:50% 50%;
 }
-/* the room rises through the opening letters, painting over the rail */
+/* The room rises through the opening letters, painting over the rail.
+   Everything after the rail has to be positioned too: the rail's sticky is
+   a positioned box that parks at the bottom of its own stage, and static
+   sections would paint underneath it — which is how its progress bar ended
+   up drawn across the newsletter form. */
 .menu-rail{z-index:0}
-.visit-section{position:relative;z-index:1;margin-top:-100vh}
+.visit-section,
+.news,
+footer{position:relative;z-index:1}
+.visit-section{margin-top:-100vh}
 /* no pan, no tail: the swipe carousel just ends and the room follows */
 .menu-rail.is-swipe + .visit-section{margin-top:0}
 .is-swipe .gate{display:none}
@@ -528,9 +535,16 @@ section.pad{padding:clamp(90px,13vh,170px) 0}
 
 /* newsletter — editorial split: the ask on the left, the form on the right */
 .news{
-  border-top:1px solid var(--line);border-bottom:1px solid var(--line);
   padding:clamp(76px,12vh,132px) 0;
 }
+/* hairlines that fade out before the edges, instead of two hard rules
+   running the full width of the page */
+.news::before,.news::after{
+  content:"";position:absolute;left:0;right:0;height:1px;pointer-events:none;
+  background:linear-gradient(90deg,transparent,var(--line) 16%,var(--line) 84%,transparent);
+}
+.news::before{top:0}
+.news::after{bottom:0}
 .news-grid{
   display:grid;grid-template-columns:1.05fr .95fr;
   gap:clamp(34px,6vw,92px);align-items:end;
