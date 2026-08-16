@@ -99,89 +99,173 @@ h1,h2,h3{
 .stage{position:relative;height:620vh}
 .stage-bridge{height:400vh;margin-top:-200vh}
 /* ============================================================
-   MENU — photographed, not filmed
+   MENU RAIL — one sideways run through the board
    ============================================================ */
-.menu-section{padding-top:clamp(96px,15vh,180px)}
-.dish-group{margin-bottom:clamp(72px,11vh,140px)}
-.dish-head{
-  display:flex;align-items:baseline;justify-content:space-between;gap:24px;
-  border-bottom:1px solid var(--line);padding-bottom:22px;margin-bottom:clamp(28px,4vh,48px);
-  opacity:0;transform:translateY(20px);
-  transition:opacity .8s var(--ease),transform .8s var(--ease);
+.menu-rail{position:relative}
+.rail-sticky{
+  position:sticky;top:0;height:100vh;height:100dvh;
+  display:flex;align-items:center;overflow:hidden;
 }
-.dish-head.in{opacity:1;transform:none}
-.dish-head h2{font-size:clamp(1.7rem,3.6vw,2.9rem)}
-
-.dish-grid{
-  /* minmax(0,1fr): plain 1fr refuses to shrink below an item's min-content,
-     which pushes the grid past the wrap */
-  display:grid;grid-template-columns:repeat(12,minmax(0,1fr));
-  gap:clamp(20px,2.6vw,42px);
+.rail-track{
+  display:flex;align-items:center;
+  gap:clamp(20px,2.4vw,40px);
+  padding-inline:clamp(24px,6vw,90px);
+  will-change:transform;
 }
-.dish--wide{grid-column:span 7}
-.dish--mid{grid-column:span 5}
-.dish--sm{grid-column:span 4}
 
-.dish{transition:opacity .6s var(--ease)}
-.dish-frame{
-  position:relative;overflow:hidden;border-radius:18px;
-  aspect-ratio:4/3;background:var(--bg-2);
-  border:1px solid var(--line);
+/* a title panel opens each run */
+.rail-chapter{
+  flex:0 0 auto;width:clamp(210px,21vw,320px);
+  display:flex;flex-direction:column;justify-content:center;gap:14px;
+  padding-right:clamp(8px,1.6vw,26px);
+}
+.rail-chapter h2{font-size:clamp(1.8rem,3.3vw,2.9rem)}
+.rail-chapter-count{
+  font-size:10px;letter-spacing:.24em;text-transform:uppercase;
+  color:rgba(242,236,227,.52);
+}
+.rail-chapter--end{width:clamp(240px,26vw,380px)}
+.rail-chapter--end .menu-note{margin:0;max-width:32ch}
+
+.rail-card{
+  flex:0 0 auto;width:clamp(238px,23vw,330px);
+  display:flex;flex-direction:column;text-align:left;
+  padding:0;border:0;background:none;color:inherit;font:inherit;
+  cursor:pointer;transition:opacity .5s var(--ease);
+}
+.rail-frame{
+  position:relative;display:block;overflow:hidden;
+  aspect-ratio:4/5;border-radius:18px;
+  background:var(--bg-2);border:1px solid var(--line);
   box-shadow:inset 0 1px 0 rgba(242,236,227,.08);
-  /* the plate wipes up from its own baseline */
-  clip-path:inset(0 0 100% 0);
-  transition:clip-path 1.05s var(--ease),border-color .6s var(--ease);
-  transition-delay:calc(var(--i,0) * 90ms);
+  transition:border-color .6s var(--ease),transform .6s var(--ease);
 }
-.dish--wide .dish-frame{aspect-ratio:16/10}
-.dish.in .dish-frame{clip-path:inset(0 0 0 0)}
-.dish-frame img{
-  width:100%;height:100%;object-fit:cover;
-  transform:scale(1.12);
-  transition:transform 1.4s var(--ease);
-  transition-delay:calc(var(--i,0) * 90ms);
+.rail-img{
+  width:100%;height:100%;object-fit:cover;display:block;
+  transform:scale(1.14);will-change:transform;
 }
-.dish.in .dish-frame img{transform:scale(1)}
+/* the affordance: this card opens */
+.rail-open{
+  position:absolute;right:12px;bottom:12px;
+  width:34px;height:34px;border-radius:50%;
+  display:grid;place-items:center;font-size:12px;
+  background:rgba(10,8,6,.62);border:1px solid rgba(242,236,227,.18);
+  opacity:0;transform:translateY(6px);
+  transition:opacity .5s var(--ease),transform .5s var(--ease),background .5s var(--ease);
+}
+.rail-card:hover .rail-open,
+.rail-card:focus-visible .rail-open{opacity:1;transform:none}
+.rail-line{
+  display:flex;align-items:baseline;justify-content:space-between;gap:14px;
+  margin-top:16px;padding-bottom:9px;border-bottom:1px solid var(--line);
+}
+.rail-name{font-family:var(--display);font-weight:500;font-size:clamp(1.05rem,1.5vw,1.32rem);letter-spacing:-.012em}
+.rail-price{font-size:13.5px;color:var(--gold);font-variant-numeric:tabular-nums;transition:transform .6s var(--ease)}
+.rail-note{margin-top:9px;font-size:12.5px;line-height:1.5;color:var(--ink-dim)}
 
-.dish-line{
-  display:flex;align-items:baseline;justify-content:space-between;gap:16px;
-  margin-top:18px;padding-bottom:10px;border-bottom:1px solid var(--line);
-}
-.dish-line h3{font-size:clamp(1.15rem,1.8vw,1.5rem);letter-spacing:-.01em}
-.dish-price{
-  font-size:14px;color:var(--gold);font-variant-numeric:tabular-nums;
-  transition:transform .6s var(--ease);
-}
-.dish-note{margin-top:10px;font-size:13.5px;line-height:1.5;color:var(--ink-dim);max-width:42ch}
-.dish-line,.dish-note{
-  opacity:0;transform:translateY(16px);
-  transition:opacity .8s var(--ease),transform .8s var(--ease);
-  transition-delay:calc(var(--i,0) * 90ms + 240ms);
-}
-.dish.in .dish-line,.dish.in .dish-note{opacity:1;transform:none}
-
-/* one dish holds the page: hovering dims its neighbours */
 @media(hover:hover){
-  .dish-grid:hover .dish{opacity:.38}
-  .dish-grid .dish:hover{opacity:1}
-  .dish:hover .dish-frame{border-color:rgba(201,144,63,.5)}
-  .dish:hover .dish-frame img{transform:scale(1.05)}
-  .dish:hover .dish-price{transform:translateX(-4px)}
+  .rail-track:hover .rail-card{opacity:.4}
+  .rail-track .rail-card:hover{opacity:1}
+  .rail-card:hover .rail-frame{border-color:rgba(201,144,63,.5);transform:translateY(-5px)}
+  .rail-card:hover .rail-price{transform:translateX(-4px)}
+}
+.rail-card:focus-visible{outline:none}
+.rail-card:focus-visible .rail-frame{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,144,63,.2)}
+
+.rail-progress{
+  position:absolute;left:clamp(24px,6vw,90px);right:clamp(24px,6vw,90px);
+  bottom:clamp(26px,5vh,52px);height:1px;background:var(--line);
+}
+.rail-progress span{
+  display:block;height:100%;background:var(--gold);
+  transform-origin:0 50%;transform:scaleX(0);
 }
 
-@media(max-width:1100px){
-  .dish-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .dish--wide,.dish--mid,.dish--sm{grid-column:span 1}
-  .dish--wide .dish-frame{aspect-ratio:4/3}
+/* touch and reduced motion: a real carousel, never a scroll hijack */
+.menu-rail.is-swipe{height:auto!important}
+.is-swipe .rail-sticky{position:static;height:auto;display:block;padding:clamp(64px,10vh,120px) 0}
+.is-swipe .rail-track{
+  transform:none!important;overflow-x:auto;overscroll-behavior-x:contain;
+  scroll-snap-type:x mandatory;padding-bottom:22px;
 }
-@media(max-width:700px){
-  .dish-grid{grid-template-columns:1fr}
-  .dish--wide,.dish--mid,.dish--sm{grid-column:1/-1}
+.is-swipe .rail-card,
+.is-swipe .rail-chapter{scroll-snap-align:center}
+.is-swipe .rail-card{width:min(74vw,318px)}
+.is-swipe .rail-chapter{width:min(64vw,280px)}
+.is-swipe .rail-img{transform:scale(1)!important}
+.is-swipe .rail-progress{display:none}
+.is-swipe .rail-open{opacity:1;transform:none}
+.is-swipe .rail-track::-webkit-scrollbar{height:2px}
+.is-swipe .rail-track::-webkit-scrollbar-thumb{background:var(--line)}
+
+/* ---------- dish detail ---------- */
+.dd{
+  width:100vw;height:100dvh;max-width:100vw;max-height:100dvh;
+  padding:0;border:0;background:transparent;color:var(--ink);
+  display:grid;place-items:center;overscroll-behavior:contain;
 }
-@media (prefers-reduced-motion:reduce){
-  .dish-frame,.dish-frame img,.dish-line,.dish-note,.dish-head{
-    clip-path:none;transform:none;opacity:1;transition:none;
+.dd:not([open]){display:none}
+.dd::backdrop{background:rgba(5,4,3,.84)}
+.dd-panel{
+  position:relative;width:min(1040px,92vw);max-height:88dvh;overflow:auto;
+  display:grid;grid-template-columns:1.02fr .98fr;gap:6px;
+  padding:6px;border-radius:26px;
+  background:rgba(242,236,227,.05);border:1px solid var(--line);
+  /* fixed, top-layer element, so the blur costs nothing on scroll */
+  backdrop-filter:blur(22px);
+}
+.dd-figure{border-radius:20px;overflow:hidden;aspect-ratio:4/5;background:var(--bg-2)}
+.dd-figure img{width:100%;height:100%;object-fit:cover;display:block}
+.dd-body{
+  display:flex;flex-direction:column;gap:13px;
+  padding:clamp(24px,3vw,42px);border-radius:20px;
+  background:rgba(10,8,6,.82);box-shadow:inset 0 1px 0 rgba(242,236,227,.1);
+}
+.dd-body h2{margin:2px 0 0}
+.dd-price{font-size:15px;color:var(--gold);font-variant-numeric:tabular-nums}
+.dd-meta{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;
+  margin-top:4px;border:1px solid var(--line);border-radius:14px;
+  background:var(--line);overflow:hidden;
+}
+.dd-meta div{background:rgba(10,8,6,.92);padding:13px 14px}
+.dd-meta dt{
+  font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;
+  color:rgba(242,236,227,.58);margin-bottom:6px;
+}
+.dd-meta dd{font-size:14px;line-height:1.35}
+.dd-story{font-size:13.5px;line-height:1.6;color:var(--ink-dim)}
+.dd-nav{
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+  margin-top:auto;padding-top:16px;
+}
+.dd-count{font-size:11px;letter-spacing:.2em;color:var(--ink-dim);font-variant-numeric:tabular-nums}
+.dd-close{
+  position:absolute;top:16px;right:16px;z-index:2;
+  width:38px;height:38px;border-radius:50%;cursor:pointer;
+  display:grid;place-items:center;font-size:13px;
+  background:rgba(10,8,6,.78);border:1px solid var(--line);color:var(--ink);
+  transition:background .5s var(--ease),border-color .5s var(--ease);
+}
+.dd-close:hover{background:rgba(10,8,6,.95);border-color:var(--ink-dim)}
+
+@media(max-width:860px){
+  .dd-panel{grid-template-columns:1fr;max-height:92dvh}
+  .dd-figure{aspect-ratio:16/11}
+  .dd-meta{grid-template-columns:1fr}
+  /* the panel scrolls on a phone, so paging stays pinned to its floor */
+  .dd-nav{
+    position:sticky;bottom:0;margin-top:8px;
+    margin-inline:calc(clamp(24px,3vw,42px) * -1);
+    padding:14px clamp(24px,3vw,42px) calc(6px + env(safe-area-inset-bottom));
+    background:linear-gradient(0deg,rgba(10,8,6,.97) 62%,rgba(10,8,6,0));
   }
+}
+@media (prefers-reduced-motion:no-preference){
+  .dd[open] .dd-panel{animation:dd-in .5s var(--ease) both}
+  .dd[open]::backdrop{animation:dd-fade .4s ease both}
+  @keyframes dd-in{from{opacity:0;transform:translateY(18px) scale(.985)}to{opacity:1;transform:none}}
+  @keyframes dd-fade{from{opacity:0}to{opacity:1}}
 }
 
 .menu-note{
@@ -320,6 +404,9 @@ h1,h2,h3{
 .btn{
   display:inline-flex;align-items:center;gap:12px;
   padding:13px 28px;border-radius:100px;border:1px solid transparent;
+  /* <button> otherwise paints the UA's buttonface fill, which swallows a
+     ghost button's label */
+  background:none;color:var(--ink);
   font-family:inherit;font-size:11px;letter-spacing:.2em;text-transform:uppercase;
   text-decoration:none;white-space:nowrap;cursor:pointer;
   transition:background .5s var(--ease),color .5s var(--ease),

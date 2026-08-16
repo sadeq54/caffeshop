@@ -22,35 +22,33 @@ Self-hosted through `@fontsource-variable` (no CDN, no `<link>`):
   family dropped into the line.
 - **Geist Variable** for body, UI, eyebrows and the menu.
 
-## Menu (`MenuGrid.jsx`)
+## Menu (`MenuRail.jsx` + `DishDialog.jsx`)
 
-15 items in 3 groups, shown as photography. `public/menu/*.webp` are Pexels
-photos cropped to 1100x825 and put through one identical grade
+15 items in 3 groups, held in `src/data/menu.js` with the detail each one
+opens into. `public/menu/*.webp` are Pexels photos cropped to 1100x825 and put
+through one identical grade
 (`eq=contrast=1.06:saturation=0.84:brightness=-0.02`) so they read as one set
 rather than 15 borrowed pictures. Whole folder is ~550KB.
 
-Layout is a 12-column grid where each group runs its own rhythm, so no two
-groups scan the same way:
+**The rail.** Cards and group title panels sit in one flat flex track. On a
+pointer device the section pins and vertical scroll pans the track sideways;
+the stage's height is set in JS to `viewport + (trackWidth - viewport)` so the
+travel and the scroll length always match. Each image counter-drifts against
+the rail by its distance from the viewport centre, which gives the row depth.
+Group panels are rendered inside fragments so the track's children stay flat —
+a wrapper per group would give every card in that group the same centre and
+kill the parallax.
 
-| group | pattern |
-|---|---|
-| Espresso | wide(7) · mid(5) · sm(4) · sm(4) · sm(4) |
-| Filter & Cold | mid(5) · wide(7) · sm · sm · sm |
-| Beans | sm · sm · sm · wide(7) · mid(5) |
+On touch, under reduced motion, or below 860px the same markup becomes a
+native `scroll-snap` carousel instead. Scroll-hijacking a phone is a fight the
+user always loses. The mode is decided during the first render, so the rail
+never flashes in the wrong one.
 
-Animation, per card and staggered by index (`--i`):
-
-1. the frame wipes up from its own baseline (`clip-path: inset(0 0 100% 0)`),
-2. the image settles out of a 1.12 zoom underneath the wipe,
-3. name, price and note rise in 240ms behind the image.
-
-On hover the grid dims to 38% and the hovered card stays lit, so one dish holds
-the page; its frame picks up a gold hairline and the price shifts. Hover
-effects are behind `@media (hover:hover)` so touch never sticks in a dimmed
-state. Reduced motion shows everything with no wipe, zoom or rise.
-
-Grid columns are `repeat(12, minmax(0,1fr))` — plain `1fr` refuses to shrink
-below an item's min-content and pushes the grid past the wrap.
+**The detail.** Any card opens a native `<dialog>` via `showModal()`, which
+brings the focus trap, the inert background, Esc-to-close and the top layer
+from the platform. On top of that: backdrop-click to dismiss, left/right arrow
+keys to page through all 15, and focus restored to the card that opened it.
+Keyboard users tabbing the rail get the focused card scrolled into view.
 
 ## Caption anchors
 

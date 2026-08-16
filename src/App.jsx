@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import Nav from './components/Nav.jsx'
 import FilmStage from './components/FilmStage.jsx'
 import BridgeFilm from './components/BridgeFilm.jsx'
-import MenuGrid from './components/MenuGrid.jsx'
+import MenuRail from './components/MenuRail.jsx'
 import Visit from './components/Visit.jsx'
 import Newsletter from './components/Newsletter.jsx'
 import Footer from './components/Footer.jsx'
@@ -35,7 +35,7 @@ export default function App() {
       <Nav />
       <FilmStage />
       <BridgeFilm />
-      <MenuGrid />
+      <MenuRail />
       <Visit />
       <Newsletter />
       <Footer />
