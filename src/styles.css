@@ -228,6 +228,9 @@ footer{position:relative;z-index:1}
 .rail-progress{
   position:absolute;left:clamp(24px,6vw,90px);right:clamp(24px,6vw,90px);
   bottom:clamp(26px,5vh,52px);height:1px;background:var(--line);
+  /* hidden until the rail's loop lights it: it is parked inside the
+     sections below and must never appear there */
+  opacity:0;
 }
 .rail-progress span{
   display:block;height:100%;background:var(--gold);

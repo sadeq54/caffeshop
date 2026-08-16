@@ -27,6 +27,7 @@ export default function MenuRail() {
   useEffect(() => {
     if (mode !== 'pan') return
     const stage = stageRef.current
+    const sticky = stage.querySelector('.rail-sticky')
     const track = trackRef.current
     const prog = progRef.current
     const panels = Array.from(track.children)
@@ -60,8 +61,14 @@ export default function MenuRail() {
       const r = stage.getBoundingClientRect()
       const total = stage.offsetHeight - window.innerHeight
       const target = total > 0 ? clamp01(-r.top / total) : 0
-      shown += (target - shown) * 0.12
+      // snap rather than ease when the stage is far off: easing across a
+      // jump (page load at a restored offset, an anchor click) would run the
+      // whole tail backwards with the rail's chrome lit up over whatever
+      // section is actually on screen
+      shown = Math.abs(target - shown) > 0.2 ? target : shown + (target - shown) * 0.12
       if (Math.abs(shown - target) < 0.0002) shown = target
+      // nothing of this stage should paint once it is behind us
+      sticky.style.visibility = r.bottom <= 0 || r.top >= window.innerHeight ? 'hidden' : 'visible'
 
       const pan = panEnd > 0 ? clamp01(shown / panEnd) : 0
       const x = -pan * distance
@@ -119,6 +126,7 @@ export default function MenuRail() {
       stage.style.height = ''
       track.style.transform = ''
       track.style.opacity = ''
+      sticky.style.visibility = ''
       if (prog) prog.parentElement.style.opacity = ''
       document.documentElement.style.setProperty('--brand-out', '0')
     }
