@@ -180,9 +180,9 @@ export default function useScrollFilm({
         // this film's own first frame, so the stage looks finished while a
         // multi-megabyte file is still arriving behind it.
         if ('requestIdleCallback' in window) {
-          window.requestIdleCallback(loadFilm, { timeout: 1500 })
+          window.requestIdleCallback(loadFilm, { timeout: 700 })
         } else {
-          setTimeout(loadFilm, 300)
+          setTimeout(loadFilm, 200)
         }
       }
     }
@@ -219,8 +219,21 @@ export default function useScrollFilm({
     const onMeta = () => {
       duration = video.duration || 0
     }
+    let nudged = false
     const onCanPlay = () => {
       if (onReady) onReady()
+      // Paint a real frame before the first scroll. The reveal waits for a
+      // `seeked` (iOS will not paint a muted video otherwise), but at the top
+      // of a stage the target time is already 0, so no seek would ever be
+      // issued and the poster would sit forever on a fully loaded film.
+      if (!nudged && video.readyState >= 2) {
+        nudged = true
+        try {
+          video.currentTime = 0.001
+        } catch {
+          /* not seekable yet; the first scroll will do it */
+        }
+      }
     }
     const onError = () => {
       if (onReady) onReady()

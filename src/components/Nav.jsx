@@ -23,6 +23,25 @@ export default function Nav() {
     }
   }, [open])
 
+  /* Close first, then travel. Lenis discards a scrollTo issued while it is
+     stopped — `force` does not survive stop() — so the sheet has to be shut
+     and scrolling resumed before the jump is asked for. */
+  function go(e, href) {
+    e.preventDefault()
+    setOpen(false)
+    const el = document.querySelector(href)
+    if (!el) return
+    requestAnimationFrame(() => {
+      const lenis = window.__blkLenis
+      if (lenis) {
+        lenis.start()
+        lenis.scrollTo(el)
+      } else {
+        el.scrollIntoView({ behavior: 'smooth' })
+      }
+    })
+  }
+
   return (
     <>
       <nav className="nav">
@@ -55,7 +74,7 @@ export default function Nav() {
         <ul>
           {LINKS.map(([label, href], i) => (
             <li key={href} style={{ '--i': i }}>
-              <a href={href} onClick={() => setOpen(false)}>
+              <a href={href} onClick={(e) => go(e, href)}>
                 {label}
               </a>
             </li>
