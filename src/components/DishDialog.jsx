@@ -22,7 +22,9 @@ export default function DishDialog({ index, onClose, onIndex }) {
     } else if (!open && dlg.open) {
       dlg.close()
       if (lenis) lenis.start()
-      if (opener.current && opener.current.focus) opener.current.focus()
+      // preventScroll: the opener is a card on a horizontal rail, and the
+      // browser's own "reveal the focused element" would slide it sideways
+      if (opener.current && opener.current.focus) opener.current.focus({ preventScroll: true })
     }
   }, [open])
 

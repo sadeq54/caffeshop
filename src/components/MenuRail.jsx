@@ -155,16 +155,36 @@ export default function MenuRail() {
     }
   }, [mode])
 
-  /* keyboard users tab through the cards, so bring the focused one into view */
+  /* Keyboard users tab through the cards, so bring the focused one into view.
+     Three gates, because a click focuses a button too and travelling then
+     yanked the rail sideways under the dialog the click had just opened:
+       — :focus-visible is precisely "focus the user needs shown": false for a
+         plain mouse click, true for Tab (and for focus restored after Esc),
+       — a card already in frame needs no travel at all,
+       — and Lenis owns the scroll position, so a native scrollTo is reverted
+         on its next frame — unless the modal has it stopped, in which case it
+         sticks and the rail is left panned to the wrong place. */
   function revealFocused(el) {
     if (mode !== 'pan') return
     const { distance } = geo.current
     if (!distance) return
+    let keyboard = true
+    try {
+      keyboard = el.matches(':focus-visible')
+    } catch {
+      /* pre-2021 engine: fall through to the on-screen check below */
+    }
+    if (!keyboard) return
+    const r = el.getBoundingClientRect()
+    if (r.left >= 0 && r.right <= window.innerWidth) return
     const stage = stageRef.current
     const total = stage.offsetHeight - window.innerHeight
     const p = (el.offsetLeft + el.offsetWidth / 2 - window.innerWidth / 2) / distance
     const clamped = p < 0 ? 0 : p > 1 ? 1 : p
-    window.scrollTo({ top: stage.offsetTop + clamped * total })
+    const top = stage.offsetTop + clamped * total
+    const lenis = window.__blkLenis
+    if (lenis) lenis.scrollTo(top)
+    else window.scrollTo({ top })
   }
 
   let n = -1
