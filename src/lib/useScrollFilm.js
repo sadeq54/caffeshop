@@ -120,7 +120,9 @@ export default function useScrollFilm({
         const o = gate * smooth(a - fade, a, fp) * (1 - smooth(b, b + fade, fp))
         c.style.opacity = o.toFixed(3)
         if (!reduce) {
-          c.style.transform = 'translateY(calc(-50% + ' + ((1 - o) * 26).toFixed(1) + 'px))'
+          // the entry offset only — CSS owns the transform, so each caption
+          // can be anchored anywhere in the frame without the engine knowing
+          c.style.setProperty('--enter', ((1 - o) * 26).toFixed(1) + 'px')
           c.style.filter = o < 0.02 ? 'blur(6px)' : 'none'
         }
         c.style.pointerEvents = o > 0.5 ? 'auto' : 'none'

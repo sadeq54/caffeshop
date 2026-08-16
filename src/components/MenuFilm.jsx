@@ -54,7 +54,7 @@ export default function MenuFilm() {
         </div>
 
         {/* 2 · FILTER & COLD — over the V60 brew */}
-        <div className="caption" data-in="0.52" data-out="0.68">
+        <div className="caption caption--right" data-in="0.52" data-out="0.68">
           <h2 className="display sm">Filter &amp; Cold</h2>
           <dl className="menu-items">
             <div className="item"><dt>V60</dt><dd>3.00</dd><p className="desc">Brewed to order. Ask what&apos;s on today.</p></div>
@@ -65,7 +65,7 @@ export default function MenuFilm() {
         </div>
 
         {/* 3 · BEANS — over the falling beans */}
-        <div className="caption" data-in="0.80" data-out="0.96">
+        <div className="caption caption--floor" data-in="0.80" data-out="0.96">
           <h2 className="display sm">Beans to take home</h2>
           <dl className="menu-items">
             <div className="item"><dt>BLK House</dt><dd>9.00</dd><p className="desc">250g · Chocolate, hazelnut, brown sugar.</p></div>

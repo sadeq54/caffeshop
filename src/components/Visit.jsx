@@ -14,7 +14,10 @@ export default function Visit() {
               your seat. Bring your laptop, bring a friend, or bring nobody at all.
             </p>
             <div className="cta-row">
-              <a className="btn btn-solid" href="#">Open in Maps</a>
+              <a className="btn btn-solid btn-icon" href="#">
+                <span>Open in Maps</span>
+                <i className="btn-dot" aria-hidden="true">↗</i>
+              </a>
               <a className="btn btn-ghost" href="#">Instagram</a>
             </div>
           </div>

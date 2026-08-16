@@ -12,6 +12,26 @@ npm run dev      # http://localhost:5199
 npm run build    # production build in dist/
 ```
 
+## Type
+
+Self-hosted through `@fontsource-variable` (no CDN, no `<link>`):
+
+- **Bodoni Moda Variable** for display, loaded from its `opsz` (optical size)
+  files so hairlines sharpen as the type scales up instead of thinning out.
+  Emphasis inside a headline is the *italic of this same face* — never a second
+  family dropped into the line.
+- **Geist Variable** for body, UI, eyebrows and the menu.
+
+## Caption anchors
+
+Captions are no longer all parked at middle-left. `useScrollFilm` only writes an
+`--enter` offset; CSS owns the transform, so each beat can be framed
+differently: `.caption--upright` (upper right, right-aligned, quote rule flips
+sides), `.caption--floor` (anchored to the bottom of the frame),
+`.caption--center` (title card), `.caption--right` (right column, copy still
+left-read). No two consecutive beats share an anchor. Below 860px every variant
+collapses to one bottom-left anchor — a phone frame is too narrow to compose.
+
 ## Page shape
 
 Three scroll-scrubbed film stages, each pinned for its own scroll budget

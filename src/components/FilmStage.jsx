@@ -65,13 +65,16 @@ export default function FilmStage() {
             matters — because it does.
           </p>
           <div className="cta-row">
-            <a className="btn btn-solid" href="#menu">See the menu</a>
+            <a className="btn btn-solid btn-icon" href="#menu">
+              <span>See the menu</span>
+              <i className="btn-dot" aria-hidden="true">↗</i>
+            </a>
             <a className="btn btn-ghost" href="#visit">Find us</a>
           </div>
         </div>
 
         {/* 2 · THE PROMISE */}
-        <div className="caption" data-in="0.30" data-out="0.42">
+        <div className="caption caption--upright" data-in="0.30" data-out="0.42">
           <span className="eyebrow">The promise</span>
           <h2 className="display">
             Fresh isn&apos;t<br />
@@ -90,7 +93,7 @@ export default function FilmStage() {
         </div>
 
         {/* 3 · ORIGIN */}
-        <div className="caption" data-in="0.56" data-out="0.66">
+        <div className="caption caption--floor" data-in="0.56" data-out="0.66">
           <span className="eyebrow">Origin</span>
           <h2 className="display">
             We know<br />

@@ -11,8 +11,14 @@
   --ink-faint:rgba(242,236,227,.30);
   --gold:#c9903f;
   --line:rgba(242,236,227,.13);
-  --sans:'Helvetica Neue',Helvetica,Arial,'Segoe UI',system-ui,sans-serif;
-  --serif:'Times New Roman',Georgia,serif;
+  /* Bodoni Moda for display (the wine-label / menu register), Geist for
+     everything functional — the Canela+Graphik model, in open licences.
+     Emphasis inside a headline is the ITALIC OF THE SAME FACE, never a
+     second family. */
+  --display:'Bodoni Moda Variable',Georgia,'Times New Roman',serif;
+  --sans:'Geist Variable','Segoe UI',system-ui,sans-serif;
+  --serif:var(--display);
+  --ease:cubic-bezier(.32,.72,0,1);
 }
 html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
 body{
@@ -24,18 +30,28 @@ img{max-width:100%;display:block}
 
 /* ---------- shared type ---------- */
 .eyebrow{
-  font-size:11px;letter-spacing:.34em;text-transform:uppercase;
-  color:var(--gold);font-weight:600;
+  font-size:10.5px;letter-spacing:.3em;text-transform:uppercase;
+  color:var(--gold);font-weight:500;
 }
-h1,h2,h3{font-weight:400;line-height:1.02;letter-spacing:-.035em}
+h1,h2,h3{
+  font-family:var(--display);font-optical-sizing:auto;
+  font-weight:500;line-height:1.06;letter-spacing:-.018em;
+}
 .display{
-  font-size:clamp(2.9rem,8.4vw,7.6rem);
-  line-height:.94;letter-spacing:-.045em;
+  font-size:clamp(2.6rem,7.4vw,6.6rem);
+  line-height:1.02;letter-spacing:-.022em;
+  /* high-contrast serif needs a touch of weight to survive over footage */
+  font-weight:500;
 }
-.display em{font-family:var(--serif);font-style:italic;letter-spacing:-.02em}
+/* italic of the same face; inline-block + reserve so descenders (y g j p q)
+   are never clipped by the tight display leading */
+.display em{
+  font-style:italic;font-weight:500;letter-spacing:-.012em;
+  display:inline-block;padding-bottom:.07em;
+}
 .lede{
-  font-size:clamp(1rem,1.55vw,1.22rem);line-height:1.62;
-  color:var(--ink-dim);max-width:34ch;
+  font-size:clamp(1rem,1.5vw,1.18rem);line-height:1.62;letter-spacing:-.004em;
+  color:var(--ink-dim);max-width:36ch;
 }
 .wrap{width:min(1180px,90vw);margin-inline:auto}
 
@@ -141,9 +157,56 @@ h1,h2,h3{font-weight:400;line-height:1.02;letter-spacing:-.035em}
 }
 .caption{
   position:absolute;left:min(5vw,44px);z-index:3;
-  top:50%;transform:translateY(-50%);
+  top:50%;transform:translateY(calc(-50% + var(--enter,0px)));
   width:min(560px,80vw);
   opacity:0;will-change:opacity,transform;
+}
+/* ---------- caption anchors ----------
+   Every beat is framed differently so no two consecutive moments share a
+   composition: middle-left, upper-right, floor, centred, right column. */
+.caption--floor{
+  top:auto;bottom:clamp(64px,12vh,120px);
+  transform:translateY(var(--enter,0px));
+}
+.caption--upright{
+  top:clamp(88px,15vh,150px);left:auto;right:min(5vw,44px);
+  text-align:right;transform:translateY(var(--enter,0px));
+}
+.caption--upright .lede{margin-left:auto}
+.caption--upright .stats,
+.caption--upright .cards,
+.caption--upright .cta-row{justify-content:flex-end}
+.caption--upright .quote{
+  margin-left:auto;padding-left:0;padding-right:20px;
+  border-left:0;border-right:1px solid var(--gold);
+}
+.caption--center{
+  left:50%;right:auto;width:min(880px,86vw);text-align:center;
+  transform:translate(-50%,calc(-50% + var(--enter,0px)));
+}
+.caption--center .lede{margin-inline:auto}
+.caption--center .cta-row{justify-content:center}
+/* block moved to the right column, copy itself stays left-read */
+.caption--right{left:auto;right:min(5vw,44px)}
+
+/* phones get one honest anchor: the frame is too narrow for composition */
+@media(max-width:860px){
+  .caption,
+  .caption--floor,
+  .caption--upright,
+  .caption--center,
+  .caption--right{
+    left:min(6vw,24px);right:min(6vw,24px);width:auto;
+    top:auto;bottom:clamp(72px,14vh,128px);
+    text-align:left;transform:translateY(var(--enter,0px));
+  }
+  .caption--upright .lede,.caption--center .lede{margin-left:0}
+  .caption--upright .stats,.caption--upright .cards,.caption--upright .cta-row,
+  .caption--center .cta-row{justify-content:flex-start}
+  .caption--upright .quote{
+    margin-left:0;padding-left:20px;padding-right:0;
+    border-left:1px solid var(--gold);border-right:0;
+  }
 }
 .caption .eyebrow{display:block;margin-bottom:20px}
 .caption h1,.caption h2{margin-bottom:22px}
@@ -156,7 +219,7 @@ h1,h2,h3{font-weight:400;line-height:1.02;letter-spacing:-.035em}
 }
 .stat span{
   display:block;margin-top:9px;font-size:10.5px;letter-spacing:.2em;
-  text-transform:uppercase;color:var(--ink-faint);
+  text-transform:uppercase;color:rgba(242,236,227,.58);
 }
 .quote{
   font-family:var(--serif);font-style:italic;
@@ -171,14 +234,36 @@ h1,h2,h3{font-weight:400;line-height:1.02;letter-spacing:-.035em}
 
 .cta-row{display:flex;gap:14px;margin-top:34px;flex-wrap:wrap}
 .btn{
-  display:inline-block;padding:14px 30px;border-radius:100px;
-  font-size:11px;letter-spacing:.2em;text-transform:uppercase;
-  text-decoration:none;transition:all .35s cubic-bezier(.2,.7,.3,1);
+  display:inline-flex;align-items:center;gap:12px;
+  padding:13px 28px;border-radius:100px;border:1px solid transparent;
+  font-family:inherit;font-size:11px;letter-spacing:.2em;text-transform:uppercase;
+  text-decoration:none;white-space:nowrap;cursor:pointer;
+  transition:background .5s var(--ease),color .5s var(--ease),
+             border-color .5s var(--ease),transform .35s var(--ease);
 }
+/* the trailing mark is never naked: it sits in its own well, flush with the
+   button's right padding, and carries the kinetic tension on hover */
+.btn-icon{padding-right:7px}
+.btn-dot{
+  width:32px;height:32px;border-radius:50%;flex:none;
+  display:grid;place-items:center;
+  font-style:normal;font-size:12px;line-height:1;
+  background:rgba(10,8,6,.12);
+  transition:transform .6s var(--ease),background .6s var(--ease);
+}
+.btn:hover .btn-dot{transform:translate(2px,-2px) scale(1.06);background:rgba(10,8,6,.2)}
+.btn:active{transform:scale(.985)}
+.btn:disabled{cursor:default}
+.btn:disabled:hover .btn-dot{transform:none}
 .btn-solid{background:var(--ink);color:#0a0806;font-weight:600}
 .btn-solid:hover{background:var(--gold);color:#0a0806}
-.btn-ghost{border:1px solid var(--line);color:var(--ink)}
+.btn-ghost{border-color:var(--line);color:var(--ink)}
 .btn-ghost:hover{border-color:var(--ink);background:rgba(242,236,227,.06)}
+.btn-ghost .btn-dot{background:rgba(242,236,227,.1)}
+.btn-ghost:hover .btn-dot{background:rgba(242,236,227,.16)}
+:where(a,button,input):focus-visible{
+  outline:2px solid var(--gold);outline-offset:3px;border-radius:100px;
+}
 
 /* scroll cue */
 .cue{
@@ -223,29 +308,72 @@ section.pad{padding:clamp(90px,13vh,170px) 0}
 /* visit */
 .visit{display:grid;grid-template-columns:1.15fr 1fr;gap:70px;align-items:start}
 @media(max-width:860px){.visit{grid-template-columns:1fr;gap:44px}}
-.info{display:grid;gap:1px;background:var(--line);border:1px solid var(--line)}
-.info div{background:var(--bg);padding:22px 24px}
-.info dt{font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:8px}
-.info dd{font-size:15.5px;line-height:1.5}
+/* same shell-and-core construction as the form, so the two panels on the
+   page read as one system */
+.info{
+  display:grid;gap:6px;padding:6px;border-radius:22px;
+  background:rgba(242,236,227,.045);border:1px solid var(--line);
+}
+.info div{
+  background:rgba(10,8,6,.72);border-radius:16px;padding:20px 22px;
+  box-shadow:inset 0 1px 0 rgba(242,236,227,.10);
+}
+.info dt{
+  font-size:10px;letter-spacing:.24em;text-transform:uppercase;
+  color:rgba(242,236,227,.62);margin-bottom:9px;
+}
+.info dd{font-size:15.5px;line-height:1.55}
 
-/* newsletter */
-.news{border-top:1px solid var(--line);border-bottom:1px solid var(--line);
-  padding:clamp(56px,9vh,96px) 0;text-align:center}
-.news h2{font-size:clamp(1.7rem,4vw,3rem);margin-bottom:14px}
-.news p{color:var(--ink-dim);margin-bottom:30px;font-size:15px}
-.field{display:flex;gap:10px;max-width:430px;margin-inline:auto;flex-wrap:wrap}
-.field input{
-  flex:1 1 200px;background:transparent;border:1px solid var(--line);
-  border-radius:100px;padding:14px 22px;color:var(--ink);
-  font-family:inherit;font-size:14px;outline:none;transition:border-color .3s;
+/* newsletter — editorial split: the ask on the left, the form on the right */
+.news{
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  padding:clamp(76px,12vh,132px) 0;
 }
-.field input:focus{border-color:var(--gold)}
-.field button{
-  padding:14px 30px;border-radius:100px;border:0;cursor:pointer;
-  background:var(--ink);color:#0a0806;font-family:inherit;font-weight:600;
-  font-size:11px;letter-spacing:.2em;text-transform:uppercase;transition:background .3s;
+.news-grid{
+  display:grid;grid-template-columns:1.05fr .95fr;
+  gap:clamp(34px,6vw,92px);align-items:end;
 }
-.field button:hover{background:var(--gold)}
+.news h2{font-size:clamp(1.9rem,4.2vw,3.3rem);margin:18px 0 14px}
+.news-form{display:grid;gap:16px;justify-items:start}
+@media(max-width:860px){
+  .news-grid{grid-template-columns:1fr;align-items:start;gap:34px}
+  .news-form{justify-items:stretch}
+  /* stretched button: the mark sits flush right instead of clustering */
+  .news-form .btn{width:100%;justify-content:space-between}
+}
+
+/* the input is a core seated in a shell, not a lone outlined pill */
+.field-shell{
+  width:min(430px,100%);
+  padding:6px;border-radius:22px;
+  background:rgba(242,236,227,.045);
+  border:1px solid var(--line);
+  transition:border-color .5s var(--ease),background .5s var(--ease),box-shadow .5s var(--ease);
+}
+.field-shell:focus-within{
+  border-color:rgba(201,144,63,.55);
+  background:rgba(242,236,227,.07);
+  box-shadow:0 0 0 3px rgba(201,144,63,.16);
+}
+.field-core{
+  display:grid;gap:7px;
+  padding:13px 18px 14px;border-radius:16px;
+  background:rgba(10,8,6,.72);
+  box-shadow:inset 0 1px 0 rgba(242,236,227,.10);
+}
+.field-label{
+  font-size:10px;letter-spacing:.24em;text-transform:uppercase;
+  color:rgba(242,236,227,.62);
+}
+.field-core input{
+  width:100%;padding:0;border:0;outline:none;background:transparent;
+  color:var(--ink);font-family:inherit;font-size:16px;letter-spacing:-.005em;
+}
+.field-core input::placeholder{color:rgba(242,236,227,.50)}
+.field-shell.is-error{border-color:rgba(224,112,79,.62)}
+.field-note{font-size:13px;line-height:1.5;color:var(--ink-dim);max-width:44ch}
+.field-note.is-error{color:#e0704f}
+.field-note.is-done{color:var(--gold)}
 
 /* footer */
 footer{padding:70px 0 46px}
@@ -255,14 +383,17 @@ footer{padding:70px 0 46px}
 .foot-links a{color:var(--ink-dim);text-decoration:none;font-size:11px;letter-spacing:.18em;text-transform:uppercase;transition:color .3s}
 .foot-links a:hover{color:var(--gold)}
 .foot-bot{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;
-  border-top:1px solid var(--line);padding-top:26px;font-size:11.5px;color:var(--ink-faint)}
+  border-top:1px solid var(--line);padding-top:26px;font-size:11.5px;color:var(--ink-dim)}
 
 /* reveal-on-scroll */
-.rise{opacity:0;transform:translateY(26px);transition:opacity .9s cubic-bezier(.2,.7,.3,1),transform .9s cubic-bezier(.2,.7,.3,1)}
-.rise.in{opacity:1;transform:none}
+.rise{
+  opacity:0;transform:translateY(30px);filter:blur(6px);
+  transition:opacity .9s var(--ease),transform .9s var(--ease),filter .9s var(--ease);
+}
+.rise.in{opacity:1;transform:none;filter:none}
 
 @media (prefers-reduced-motion:reduce){
-  .rise{opacity:1;transform:none;transition:none}
+  .rise{opacity:1;transform:none;filter:none;transition:none}
   html{scroll-behavior:auto}
   .film-poster{transition:none}
   .loader{transition:none}

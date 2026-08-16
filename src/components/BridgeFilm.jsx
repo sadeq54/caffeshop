@@ -41,7 +41,7 @@ export default function BridgeFilm() {
         </div>
         <div className="iris-ring" aria-hidden="true"><i /></div>
 
-        <div className="caption" data-in="0.06" data-out="0.86">
+        <div className="caption caption--center" data-in="0.06" data-out="0.86">
           <span className="eyebrow">Menu</span>
           <h2 className="display">What we pour.</h2>
         </div>
