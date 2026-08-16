@@ -22,6 +22,36 @@ Self-hosted through `@fontsource-variable` (no CDN, no `<link>`):
   family dropped into the line.
 - **Geist Variable** for body, UI, eyebrows and the menu.
 
+## Menu (`MenuGrid.jsx`)
+
+15 items in 3 groups, shown as photography. `public/menu/*.webp` are Pexels
+photos cropped to 1100x825 and put through one identical grade
+(`eq=contrast=1.06:saturation=0.84:brightness=-0.02`) so they read as one set
+rather than 15 borrowed pictures. Whole folder is ~550KB.
+
+Layout is a 12-column grid where each group runs its own rhythm, so no two
+groups scan the same way:
+
+| group | pattern |
+|---|---|
+| Espresso | wide(7) · mid(5) · sm(4) · sm(4) · sm(4) |
+| Filter & Cold | mid(5) · wide(7) · sm · sm · sm |
+| Beans | sm · sm · sm · wide(7) · mid(5) |
+
+Animation, per card and staggered by index (`--i`):
+
+1. the frame wipes up from its own baseline (`clip-path: inset(0 0 100% 0)`),
+2. the image settles out of a 1.12 zoom underneath the wipe,
+3. name, price and note rise in 240ms behind the image.
+
+On hover the grid dims to 38% and the hovered card stays lit, so one dish holds
+the page; its frame picks up a gold hairline and the price shifts. Hover
+effects are behind `@media (hover:hover)` so touch never sticks in a dimmed
+state. Reduced motion shows everything with no wipe, zoom or rise.
+
+Grid columns are `repeat(12, minmax(0,1fr))` — plain `1fr` refuses to shrink
+below an item's min-content and pushes the grid past the wrap.
+
 ## Caption anchors
 
 Captions are no longer all parked at middle-left. `useScrollFilm` only writes an
@@ -107,9 +137,8 @@ roaster drum 7174275 (ss 2) → hand picking cherries on the farm 36271578
 (ss 3) → dual portafilters pulling shots 35769656 (ss 12). The four beats sit
 under the four captions (hero / promise / origin / craft).
 
-**Menu** (`menu-film.mp4`): espresso drip 7019759 (ss 7) → double pour
-35756026 (ss 3) → V60 window light 37396049 (ss 1) → falling beans 32896425
-(ss 7).
+The menu used to be a third film; it is photography now (see below), so
+`menu-film.mp4` was removed. It is recoverable from git history if needed.
 
 **Bridge** (`bridge-film.mp4`): the original PixVerse AI café reel, 10s. Its
 watermark is wiped at source and it is upscaled 2x before encoding:

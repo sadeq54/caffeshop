@@ -17,8 +17,9 @@ export default function BridgeFilm() {
     srcMobile: '/bridge-film-m.mp4',
     lazy: true,
     iris: true,
-    scrubStart: 0.25,
-    scrubEnd: 0.75,
+    // no hold tail: the menu below is a normal section, so the film runs to
+    // its last frame exactly as the sticky releases
+    scrubStart: 0.3333,
   })
 
   return (

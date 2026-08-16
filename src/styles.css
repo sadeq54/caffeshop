@@ -91,19 +91,103 @@ h1,h2,h3{
    ============================================================ */
 /* Stage heights are scroll budgets, in viewport-heights:
    hero   620 = 100 (pin) + 420 scrub + 100 hold
-   bridge 500 = 100 (pin) + 100 iris + 200 scrub + 100 hold
-   menu   560 = 100 (pin) + 100 iris + 360 scrub
-   Each film stage after the first is pulled up 200vh so its iris phase
-   overlaps the previous stage's hold phase — that is what lets one film
-   open through the other while both are still pinned. */
+   bridge 400 = 100 (pin) + 100 iris + 200 scrub
+   The bridge is pulled up 200vh so its iris phase overlaps the hero's hold
+   phase — that is what lets one film open through the other while both are
+   still pinned. The menu below is a normal section, so the bridge needs no
+   hold tail of its own. */
 .stage{position:relative;height:620vh}
-.stage-bridge{height:500vh;margin-top:-200vh}
-.stage-menu{height:560vh;margin-top:-200vh}
-/* menu items inside a film caption */
-.caption .menu-items{margin-top:30px;max-width:480px}
-.caption .item{padding:13px 0}
-.caption .item dd{color:var(--gold);text-shadow:0 1px 10px rgba(10,8,6,.85)}
-.caption .menu-note{margin-top:26px;font-size:13px;color:var(--ink-dim);letter-spacing:.02em}
+.stage-bridge{height:400vh;margin-top:-200vh}
+/* ============================================================
+   MENU — photographed, not filmed
+   ============================================================ */
+.menu-section{padding-top:clamp(96px,15vh,180px)}
+.dish-group{margin-bottom:clamp(72px,11vh,140px)}
+.dish-head{
+  display:flex;align-items:baseline;justify-content:space-between;gap:24px;
+  border-bottom:1px solid var(--line);padding-bottom:22px;margin-bottom:clamp(28px,4vh,48px);
+  opacity:0;transform:translateY(20px);
+  transition:opacity .8s var(--ease),transform .8s var(--ease);
+}
+.dish-head.in{opacity:1;transform:none}
+.dish-head h2{font-size:clamp(1.7rem,3.6vw,2.9rem)}
+
+.dish-grid{
+  /* minmax(0,1fr): plain 1fr refuses to shrink below an item's min-content,
+     which pushes the grid past the wrap */
+  display:grid;grid-template-columns:repeat(12,minmax(0,1fr));
+  gap:clamp(20px,2.6vw,42px);
+}
+.dish--wide{grid-column:span 7}
+.dish--mid{grid-column:span 5}
+.dish--sm{grid-column:span 4}
+
+.dish{transition:opacity .6s var(--ease)}
+.dish-frame{
+  position:relative;overflow:hidden;border-radius:18px;
+  aspect-ratio:4/3;background:var(--bg-2);
+  border:1px solid var(--line);
+  box-shadow:inset 0 1px 0 rgba(242,236,227,.08);
+  /* the plate wipes up from its own baseline */
+  clip-path:inset(0 0 100% 0);
+  transition:clip-path 1.05s var(--ease),border-color .6s var(--ease);
+  transition-delay:calc(var(--i,0) * 90ms);
+}
+.dish--wide .dish-frame{aspect-ratio:16/10}
+.dish.in .dish-frame{clip-path:inset(0 0 0 0)}
+.dish-frame img{
+  width:100%;height:100%;object-fit:cover;
+  transform:scale(1.12);
+  transition:transform 1.4s var(--ease);
+  transition-delay:calc(var(--i,0) * 90ms);
+}
+.dish.in .dish-frame img{transform:scale(1)}
+
+.dish-line{
+  display:flex;align-items:baseline;justify-content:space-between;gap:16px;
+  margin-top:18px;padding-bottom:10px;border-bottom:1px solid var(--line);
+}
+.dish-line h3{font-size:clamp(1.15rem,1.8vw,1.5rem);letter-spacing:-.01em}
+.dish-price{
+  font-size:14px;color:var(--gold);font-variant-numeric:tabular-nums;
+  transition:transform .6s var(--ease);
+}
+.dish-note{margin-top:10px;font-size:13.5px;line-height:1.5;color:var(--ink-dim);max-width:42ch}
+.dish-line,.dish-note{
+  opacity:0;transform:translateY(16px);
+  transition:opacity .8s var(--ease),transform .8s var(--ease);
+  transition-delay:calc(var(--i,0) * 90ms + 240ms);
+}
+.dish.in .dish-line,.dish.in .dish-note{opacity:1;transform:none}
+
+/* one dish holds the page: hovering dims its neighbours */
+@media(hover:hover){
+  .dish-grid:hover .dish{opacity:.38}
+  .dish-grid .dish:hover{opacity:1}
+  .dish:hover .dish-frame{border-color:rgba(201,144,63,.5)}
+  .dish:hover .dish-frame img{transform:scale(1.05)}
+  .dish:hover .dish-price{transform:translateX(-4px)}
+}
+
+@media(max-width:1100px){
+  .dish-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .dish--wide,.dish--mid,.dish--sm{grid-column:span 1}
+  .dish--wide .dish-frame{aspect-ratio:4/3}
+}
+@media(max-width:700px){
+  .dish-grid{grid-template-columns:1fr}
+  .dish--wide,.dish--mid,.dish--sm{grid-column:1/-1}
+}
+@media (prefers-reduced-motion:reduce){
+  .dish-frame,.dish-frame img,.dish-line,.dish-note,.dish-head{
+    clip-path:none;transform:none;opacity:1;transition:none;
+  }
+}
+
+.menu-note{
+  margin-top:clamp(28px,4vh,52px);font-size:13px;
+  color:var(--ink-dim);letter-spacing:.02em;
+}
 .sticky{
   position:sticky;top:0;height:100vh;height:100dvh;width:100%;
   overflow:hidden;
@@ -289,21 +373,6 @@ section.pad{padding:clamp(90px,13vh,170px) 0}
   gap:30px;flex-wrap:wrap;margin-bottom:56px;
   border-bottom:1px solid var(--line);padding-bottom:26px}
 .sec-head h2{font-size:clamp(2.1rem,5vw,4rem);letter-spacing:-.045em}
-
-/* menu */
-.menu-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:56px 70px}
-.menu-group h3{
-  font-size:11px;letter-spacing:.3em;text-transform:uppercase;
-  color:var(--gold);margin-bottom:24px;font-weight:600;
-}
-.item{
-  display:grid;grid-template-columns:1fr auto;gap:6px 18px;
-  padding:15px 0;border-bottom:1px solid var(--line);
-}
-.item dt{font-size:16.5px;letter-spacing:-.01em}
-.item dd{font-size:14px;color:var(--ink-faint);font-variant-numeric:tabular-nums}
-.item .desc{grid-column:1/-1;font-size:13px;color:var(--ink-dim);line-height:1.45}
-.menu-note{margin-top:44px;font-size:13px;color:var(--ink-faint);letter-spacing:.02em}
 
 /* visit */
 .visit{display:grid;grid-template-columns:1.15fr 1fr;gap:70px;align-items:start}
