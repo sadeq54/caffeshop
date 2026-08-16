@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { SCRUB_LERP } from './smoothScroll.js'
 
 /* ============================================================
    Scroll-driven film engine (shared by every film stage)
@@ -118,6 +119,13 @@ export default function useScrollFilm({
         const b = +c.dataset.out
         const fade = 0.1
         const o = gate * smooth(a - fade, a, fp) * (1 - smooth(b, b + fade, fp))
+        // depth: how far this beat is from the middle of its own window,
+        // so its parts can travel at different rates as it crosses
+        if (!reduce) {
+          const span = Math.max(0.001, b - a)
+          const d = clamp01((fp - (a - fade)) / (span + fade * 2)) - 0.5
+          c.style.setProperty('--d', d.toFixed(4))
+        }
         c.style.opacity = o.toFixed(3)
         if (!reduce) {
           // the entry offset only — CSS owns the transform, so each caption
@@ -167,7 +175,7 @@ export default function useScrollFilm({
     function loop() {
       const top = measure()
       maybeStart(top)
-      shown = reduce ? target : shown + (target - shown) * 0.11 // inertia
+      shown = reduce ? target : shown + (target - shown) * SCRUB_LERP
       if (Math.abs(shown - target) < 0.0002) shown = target
       const fp = filmPhase(shown)
       if (duration > 0 && !video.seeking && video.readyState >= 2) {

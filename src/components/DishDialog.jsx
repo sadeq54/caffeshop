@@ -13,11 +13,15 @@ export default function DishDialog({ index, onClose, onIndex }) {
   useEffect(() => {
     const dlg = ref.current
     if (!dlg) return
+    const lenis = window.__blkLenis
     if (open && !dlg.open) {
       opener.current = document.activeElement
       dlg.showModal()
+      // the page behind a modal must not keep scrolling under the wheel
+      if (lenis) lenis.stop()
     } else if (!open && dlg.open) {
       dlg.close()
+      if (lenis) lenis.start()
       if (opener.current && opener.current.focus) opener.current.focus()
     }
   }, [open])

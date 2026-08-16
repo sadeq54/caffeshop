@@ -27,12 +27,15 @@ export default function Newsletter() {
       <div className="wrap news-grid">
         <div className="news-copy rise">
           <span className="eyebrow">Roast list</span>
-          <h2>Know what we&apos;re roasting.</h2>
+          <h2 data-par="1.0">Know what we&apos;re roasting.</h2>
           <p className="lede">One email a week. New coffees, nothing else.</p>
         </div>
 
         <form className="news-form rise" onSubmit={submit} noValidate>
-          <div className={'field-shell' + (state === 'error' ? ' is-error' : '')}>
+          <div
+            className={'field-shell' + (state === 'error' ? ' is-error' : '')}
+            data-par="-1.0"
+          >
             <div className="field-core">
               <label className="field-label" htmlFor={id}>
                 Email address

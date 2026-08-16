@@ -4,7 +4,7 @@ export default function Footer() {
       <div className="wrap">
         <div className="foot-top">
           <div>
-            <div className="foot-mark">BLK</div>
+            <div className="foot-mark" data-par="2.4">BLK</div>
           </div>
           <div>
             <p className="lede" style={{ fontSize: 14, maxWidth: '26ch', marginBottom: 22 }}>

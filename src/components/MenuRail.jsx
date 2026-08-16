@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { GROUPS } from '../data/menu.js'
+import { SCRUB_LERP } from '../lib/smoothScroll.js'
 import DishDialog from './DishDialog.jsx'
 
 /* The menu as one long rail.
@@ -65,23 +66,34 @@ export default function MenuRail() {
       // jump (page load at a restored offset, an anchor click) would run the
       // whole tail backwards with the rail's chrome lit up over whatever
       // section is actually on screen
-      shown = Math.abs(target - shown) > 0.2 ? target : shown + (target - shown) * 0.12
+      shown = Math.abs(target - shown) > 0.2 ? target : shown + (target - shown) * SCRUB_LERP
       if (Math.abs(shown - target) < 0.0002) shown = target
       // nothing of this stage should paint once it is behind us
-      sticky.style.visibility = r.bottom <= 0 || r.top >= window.innerHeight ? 'hidden' : 'visible'
+      // hide the stage once the next section has taken the frame, not just
+      // when the stage itself has left: they overlap by a full screen
+      const covered = r.bottom <= window.innerHeight * 0.9
+      sticky.style.visibility =
+        covered || r.bottom <= 0 || r.top >= window.innerHeight ? 'hidden' : 'visible'
 
       const pan = panEnd > 0 ? clamp01(shown / panEnd) : 0
       const x = -pan * distance
       track.style.transform = `translate3d(${x.toFixed(2)}px,0,0)`
       if (prog) prog.style.transform = `scaleX(${pan.toFixed(4)})`
 
-      // depth: each image drifts against the rail by its distance from centre
+      // Depth: every panel is placed by its distance from the centre of the
+      // frame. The image slides against the rail inside its own frame, and
+      // the card itself rides up or down, alternating, so the row reads as
+      // objects at different distances rather than one flat strip.
       const vw = window.innerWidth
       for (let i = 0; i < panels.length; i++) {
-        const img = panels[i].querySelector('.rail-img')
-        if (!img) continue
+        const panel = panels[i]
         const d = (centers[i] + x - vw / 2) / vw
-        img.style.transform = `translate3d(${(-d * 30).toFixed(1)}px,0,0) scale(1.14)`
+        const img = panel.querySelector('.rail-img')
+        if (img) img.style.transform = `translate3d(${(-d * 88).toFixed(1)}px,0,0) scale(1.2)`
+        if (panel.classList.contains('rail-card')) {
+          const dir = i % 2 ? -1 : 1
+          panel.style.transform = `translate3d(0,${(d * 46 * dir).toFixed(1)}px,0)`
+        }
       }
 
       /* The tail. The rail is still pinned under all of this, so the wordmark
@@ -90,7 +102,9 @@ export default function MenuRail() {
         const t = clamp01((shown - panEnd) / (1 - panEnd))
         const ea = smooth(clamp01(t / 0.34)) // letters converge
         const eb = smooth(clamp01((t - 0.34) / 0.14)) // rule draws
-        const ec = smooth(clamp01((t - 0.5) / 0.5)) // open, as Visit rises
+        // finishes before the tail runs out, so the last stretch is clean:
+        // the room must not arrive with the gate still painting over it
+        const ec = smooth(clamp01((t - 0.5) / 0.34)) // open, as Visit rises
         const away = 1 - ea
         const vh = window.innerHeight
         const grow = 1 + ec * 0.4
@@ -103,7 +117,8 @@ export default function MenuRail() {
           `translate3d(${(away * 0.62 * vw + ec * 0.52 * vw).toFixed(1)}px,${(-away * 44).toFixed(1)}px,0) rotate(${(away * 11).toFixed(2)}deg) scale(${grow.toFixed(3)})`
 
         const lit = ea * (1 - ec)
-        for (const l of letters) l.style.opacity = ((0.2 + ea * 0.8) * (1 - ec * 0.88)).toFixed(3)
+        // all the way to zero, not to a ghost floor
+        for (const l of letters) l.style.opacity = ((0.2 + ea * 0.8) * (1 - ec)).toFixed(3)
         if (rule) rule.style.transform = `scaleX(${(eb * (1 - clamp01(ec * 2))).toFixed(3)})`
         mark.style.setProperty('--lit', lit.toFixed(3))
         // the cards recede as the name takes the frame, and are gone by the
@@ -126,6 +141,11 @@ export default function MenuRail() {
       stage.style.height = ''
       track.style.transform = ''
       track.style.opacity = ''
+      panels.forEach((el) => {
+        el.style.transform = ''
+        const im = el.querySelector('.rail-img')
+        if (im) im.style.transform = ''
+      })
       sticky.style.visibility = ''
       if (prog) prog.parentElement.style.opacity = ''
       document.documentElement.style.setProperty('--brand-out', '0')
@@ -148,7 +168,9 @@ export default function MenuRail() {
   return (
     <section className={'menu-rail' + (mode ? ' is-' + mode : '')} id="menu" ref={stageRef}>
       <div className="rail-sticky">
-        <div className="rail-track" ref={trackRef}>
+        {/* in swipe mode this is a real horizontal scroller; Lenis has to
+            keep its hands off the wheel while the pointer is over it */}
+        <div className="rail-track" ref={trackRef} data-lenis-prevent>
           {/* Fragments keep the track's children flat, so each panel's own
               centre drives its parallax */}
           {GROUPS.map((g) => (

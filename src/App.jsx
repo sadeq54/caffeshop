@@ -6,8 +6,17 @@ import MenuRail from './components/MenuRail.jsx'
 import Visit from './components/Visit.jsx'
 import Newsletter from './components/Newsletter.jsx'
 import Footer from './components/Footer.jsx'
+import { initSmoothScroll } from './lib/smoothScroll.js'
+import { initParallax } from './lib/parallax.js'
 
 export default function App() {
+  // smooth scroll first: every engine below reads the position it lerps
+  useEffect(() => {
+    initSmoothScroll()
+    const stopParallax = initParallax()
+    return stopParallax
+  }, [])
+
   // reveal-on-scroll for the static sections (IntersectionObserver survives
   // layout shifts, unlike position-measured tweens)
   useEffect(() => {

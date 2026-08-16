@@ -20,7 +20,8 @@
   --serif:var(--display);
   --ease:cubic-bezier(.32,.72,0,1);
 }
-html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+/* no native smooth scroll: Lenis owns the easing and the two fight */
+html{-webkit-text-size-adjust:100%}
 body{
   background:var(--bg);color:var(--ink);font-family:var(--sans);
   font-weight:400;line-height:1.55;overflow-x:hidden;
@@ -195,7 +196,8 @@ footer{position:relative;z-index:1}
 }
 .rail-img{
   width:100%;height:100%;object-fit:cover;display:block;
-  transform:scale(1.14);will-change:transform;
+  /* over-scaled so the image can slide inside its frame without edges */
+  transform:scale(1.2);will-change:transform;
 }
 /* the affordance: this card opens */
 .rail-open{
@@ -434,6 +436,16 @@ footer{position:relative;z-index:1}
 }
 .caption .eyebrow{display:block;margin-bottom:20px}
 .caption h1,.caption h2{margin-bottom:22px}
+/* depth inside a beat: --d runs -0.5 to 0.5 as the caption crosses its
+   window, and each part rides it at its own rate, so the block separates
+   into layers instead of sliding as one flat card */
+.caption .eyebrow{transform:translateY(calc(var(--d,0) * -96px))}
+.caption h1,.caption h2{transform:translateY(calc(var(--d,0) * -54px))}
+.caption .lede{transform:translateY(calc(var(--d,0) * -22px))}
+.caption .quote{transform:translateY(calc(var(--d,0) * 30px))}
+.caption .stats,
+.caption .cards,
+.caption .cta-row{transform:translateY(calc(var(--d,0) * 44px))}
 /* longer headlines need a smaller size so they never overflow the viewport */
 .display.sm{font-size:clamp(2.1rem,5.2vw,4.4rem);line-height:.98}
 .stats{display:flex;gap:38px;margin-top:34px;flex-wrap:wrap}
@@ -517,9 +529,37 @@ section.pad{padding:clamp(90px,13vh,170px) 0}
   border-bottom:1px solid var(--line);padding-bottom:26px}
 .sec-head h2{font-size:clamp(2.1rem,5vw,4rem);letter-spacing:-.045em}
 
-/* visit */
-.visit{display:grid;grid-template-columns:1.15fr 1fr;gap:70px;align-items:start}
-@media(max-width:860px){.visit{grid-template-columns:1fr;gap:44px}}
+/* visit — a layered stack, not two columns */
+.visit-stack{
+  display:grid;grid-template-columns:repeat(12,minmax(0,1fr));
+  column-gap:clamp(16px,2.4vw,40px);
+  align-items:start;
+}
+.vs-plate{margin:0;overflow:hidden;border-radius:20px;background:var(--bg-2);
+  border:1px solid var(--line);box-shadow:inset 0 1px 0 rgba(242,236,227,.08)}
+.vs-plate img{width:100%;height:100%;object-fit:cover;display:block}
+/* deepest: the room, tall, holding the left edge */
+.vs-plate--a{grid-column:1/6;grid-row:1/3;aspect-ratio:3/4}
+/* the copy rides beside it, dropped so the plate reads as behind */
+.vs-copy{grid-column:6/13;grid-row:1;padding-top:clamp(24px,7vh,90px)}
+.vs-copy .display{margin:18px 0 22px}
+/* the bar cuts across the seam between the two */
+.vs-plate--b{
+  grid-column:4/9;grid-row:2;aspect-ratio:4/3;
+  margin-top:clamp(28px,6vh,80px);z-index:2;
+}
+/* the panel floats in front, clear of the plate below it */
+.vs-panel{grid-column:9/13;grid-row:2;margin-top:clamp(60px,12vh,150px);z-index:3}
+.visit-stack>*{position:relative}
+
+@media(max-width:980px){
+  .visit-stack{grid-template-columns:1fr;row-gap:clamp(26px,5vh,48px)}
+  .visit-stack>*{grid-column:1/-1!important;grid-row:auto!important;margin-top:0!important}
+  .vs-copy{padding-top:0}
+  .vs-plate--a{aspect-ratio:4/3}
+  /* stacked single file, depth would only jitter the layout */
+  .vs-plate,.vs-panel>div{transform:none!important}
+}
 /* same shell-and-core construction as the form, so the two panels on the
    page read as one system */
 .info{
@@ -613,7 +653,6 @@ footer{padding:70px 0 46px}
 
 @media (prefers-reduced-motion:reduce){
   .rise{opacity:1;transform:none;filter:none;transition:none}
-  html{scroll-behavior:auto}
   .film-poster{transition:none}
   .loader{transition:none}
 }
