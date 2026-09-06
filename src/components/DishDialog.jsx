@@ -59,18 +59,18 @@ export default function DishDialog({ index, onClose, onIndex }) {
     >
       {dish && (
         <div className="dd-panel">
-          <button className="dd-close" type="button" onClick={onClose} aria-label="Close">
+          <button className="dd-close" type="button" onClick={onClose} aria-label="اغلاق">
             <span aria-hidden="true">✕</span>
           </button>
 
           <div className="dd-figure">
-            <img src={`/menu/${dish.slug}.webp`} alt="" width="1100" height="825" />
+            <img src={dish.img} alt="" width="224" height="310" />
           </div>
 
           <div className="dd-body">
-            <span className="eyebrow">{dish.group}</span>
+            <span className="eyebrow">{dish.group} · {dish.en}</span>
             <h2 id="dd-title" className="display sm">{dish.name}</h2>
-            <p className="dd-price">{dish.price} JD</p>
+            <p className="dd-price">{dish.price} JOD</p>
             <p className="lede">{dish.note}</p>
 
             <dl className="dd-meta">
@@ -90,7 +90,7 @@ export default function DishDialog({ index, onClose, onIndex }) {
                 className="btn btn-ghost"
                 onClick={() => onIndex((index - 1 + DISHES.length) % DISHES.length)}
               >
-                Previous
+                السابق
               </button>
               <span className="dd-count">
                 {String(index + 1).padStart(2, '0')} / {DISHES.length}
@@ -100,8 +100,8 @@ export default function DishDialog({ index, onClose, onIndex }) {
                 className="btn btn-solid btn-icon"
                 onClick={() => onIndex((index + 1) % DISHES.length)}
               >
-                <span>Next</span>
-                <i className="btn-dot" aria-hidden="true">→</i>
+                <span>التالي</span>
+                <i className="btn-dot" aria-hidden="true">←</i>
               </button>
             </div>
           </div>

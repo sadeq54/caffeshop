@@ -15,7 +15,7 @@ export default function MenuRail() {
   const progRef = useRef(null)
   const markRef = useRef(null)
   const ruleRef = useRef(null)
-  const geo = useRef({ distance: 0, tail: 0, panEnd: 1, centers: [] })
+  const geo = useRef({ distance: 0, tail: 0, panEnd: 1, centers: [], base: 0 })
   // decided during the first render so the rail never flashes in the wrong mode
   const [mode] = useState(() => {
     const coarse = window.matchMedia('(hover: none) and (pointer: coarse)').matches
@@ -54,6 +54,11 @@ export default function MenuRail() {
         tail,
         panEnd: distance / (distance + tail),
         centers: panels.map((p) => p.offsetLeft + p.offsetWidth / 2),
+        // RTL: the track packs against the viewport's RIGHT edge and hangs
+        // off the left, so every panel's physical position is shifted by
+        // this much. offsetLeft itself stays physical (from the track's
+        // left edge) in both directions.
+        base: window.innerWidth - track.scrollWidth,
       }
     }
 
@@ -76,7 +81,10 @@ export default function MenuRail() {
         covered || r.bottom <= 0 || r.top >= window.innerHeight ? 'hidden' : 'visible'
 
       const pan = panEnd > 0 ? clamp01(shown / panEnd) : 0
-      const x = -pan * distance
+      // RTL rail: the first card starts at the right and the run travels
+      // rightward (+x) to bring the far end in from the left — the mirror
+      // of the LTR -x pan
+      const x = pan * distance
       track.style.transform = `translate3d(${x.toFixed(2)}px,0,0)`
       if (prog) prog.style.transform = `scaleX(${pan.toFixed(4)})`
 
@@ -85,14 +93,16 @@ export default function MenuRail() {
       // the card itself rides up or down, alternating, so the row reads as
       // objects at different distances rather than one flat strip.
       const vw = window.innerWidth
+      const { base } = geo.current
       for (let i = 0; i < panels.length; i++) {
         const panel = panels[i]
-        const d = (centers[i] + x - vw / 2) / vw
+        const d = (base + centers[i] + x - vw / 2) / vw
         // |d| > 1.2 is more than a screen away along the rail: not visible,
         // so skip the writes. Most of the 19 panels are off-frame at any time.
         if (d < -1.2 || d > 1.2) continue
-        const img = panel.querySelector('.rail-img')
-        if (img) img.style.transform = `translate3d(${(-d * 88).toFixed(1)}px,0,0) scale(1.2)`
+        // no in-frame image drift here: the brand's product cards are
+        // `contain`-fitted renders, and sliding them would bare their edges.
+        // The alternating vertical ride carries the depth on its own.
         if (panel.classList.contains('rail-card')) {
           const dir = i % 2 ? -1 : 1
           panel.style.transform = `translate3d(0,${(d * 46 * dir).toFixed(1)}px,0)`
@@ -120,8 +130,9 @@ export default function MenuRail() {
           `translate3d(${(away * 0.62 * vw + ec * 0.52 * vw).toFixed(1)}px,${(-away * 44).toFixed(1)}px,0) rotate(${(away * 11).toFixed(2)}deg) scale(${grow.toFixed(3)})`
 
         const lit = ea * (1 - ec)
-        // all the way to zero, not to a ghost floor
-        for (const l of letters) l.style.opacity = ((0.2 + ea * 0.8) * (1 - ec)).toFixed(3)
+        // all the way to zero: on the cream board even a 0.2 ghost reads
+        // as a smudge floating over the cards during the pan
+        for (const l of letters) l.style.opacity = (ea * (1 - ec)).toFixed(3)
         if (rule) rule.style.transform = `scaleX(${(eb * (1 - clamp01(ec * 2))).toFixed(3)})`
         mark.style.setProperty('--lit', lit.toFixed(3))
         // the cards recede as the name takes the frame, and are gone by the
@@ -179,7 +190,10 @@ export default function MenuRail() {
     if (r.left >= 0 && r.right <= window.innerWidth) return
     const stage = stageRef.current
     const total = stage.offsetHeight - window.innerHeight
-    const p = (el.offsetLeft + el.offsetWidth / 2 - window.innerWidth / 2) / distance
+    // RTL: screen pos = base + center + pan*distance; solve for the pan
+    // that centres this card in the frame
+    const { base } = geo.current
+    const p = (window.innerWidth / 2 - base - (el.offsetLeft + el.offsetWidth / 2)) / distance
     const clamped = p < 0 ? 0 : p > 1 ? 1 : p
     const top = stage.offsetTop + clamped * total
     const lenis = window.__blkLenis
@@ -204,7 +218,8 @@ export default function MenuRail() {
             <Fragment key={g.title}>
               <div className="rail-chapter">
                 <h2>{g.title}</h2>
-                <span className="rail-chapter-count">{g.items.length} on the board</span>
+                <span className="rail-chapter-count">{g.items.length} عالبورد · <bdi>{g.en}</bdi></span>
+                {g.phrase && <span className="rail-phrase">{g.phrase}</span>}
               </div>
 
               {g.items.map((item) => {
@@ -217,18 +232,18 @@ export default function MenuRail() {
                     key={item.slug}
                     onClick={() => setOpen(i)}
                     onFocus={(e) => revealFocused(e.currentTarget)}
-                    aria-label={`${item.name}, ${item.price} JD. Open details`}
+                    aria-label={`${item.name}، ${item.price} دينار. افتح التفاصيل`}
                   >
                     <span className="rail-frame">
                       <img
                         className="rail-img"
-                        src={`/menu/${item.slug}.webp`}
+                        src={item.img}
                         alt=""
                         loading="lazy"
-                        width="1100"
-                        height="825"
+                        width="224"
+                        height="310"
                       />
-                      <span className="rail-open" aria-hidden="true">↗</span>
+                      <span className="rail-open" aria-hidden="true">↖</span>
                     </span>
                     <span className="rail-line">
                       <span className="rail-name">{item.name}</span>
@@ -242,10 +257,11 @@ export default function MenuRail() {
           ))}
 
           {/* the rail closes on its footnote; the wordmark moment that links
-              this section to the next lives in BrandGate */}
+              this section to the next lives in the gate tail */}
           <div className="rail-chapter rail-chapter--end">
             <p className="menu-note">
-              Oat, almond and full-fat — no charge for the swap. Prices in JD.
+              الأسعار بالدينار الأردني. البورد الكامل، من السندويشات للمخبوزات
+              للعصير، بكل فرع. والطلب اونلاين من del.blk.jo.
             </p>
           </div>
         </div>
@@ -254,12 +270,16 @@ export default function MenuRail() {
           <span ref={progRef} />
         </div>
 
-        {/* the name, over the board it belongs to */}
+        {/* the name, over the board it belongs to — assembling into the
+            brand's boxed mark: قهوة over BLK, framed */}
         <div className="gate" aria-hidden="true">
           <div className="gate-mark" ref={markRef}>
-            <span className="gate-l">B</span>
-            <span className="gate-l">L</span>
-            <span className="gate-l">K</span>
+            <span className="gate-word">قهوة</span>
+            <span className="gate-row">
+              <span className="gate-l">B</span>
+              <span className="gate-l">L</span>
+              <span className="gate-l">K</span>
+            </span>
           </div>
           <span className="gate-rule" ref={ruleRef} />
         </div>

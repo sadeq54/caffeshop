@@ -17,28 +17,28 @@ export default function Newsletter() {
   }
 
   const note = {
-    idle: 'One email a week, on Mondays. Unsubscribe in a click.',
-    error: 'That address is missing something. Check it and try again.',
-    done: 'You are on the list. The next roast note goes out Monday.',
+    idle: 'ايميل واحد بالاسبوع: الجديد عالبورد، العروض، والفروع الجاي. ولا شي غير هيك.',
+    error: 'الايميل ناقصه شي. تأكد منه وجرب كمان مرة.',
+    done: 'تمام، صرت عالقائمة! أول ايميل بوصلك مع جديدنا الجاي.',
   }[state]
 
   return (
-    <section className="news" id="wholesale">
+    <section className="news light" id="wholesale">
       <div className="wrap news-grid">
         <div className="news-copy rise">
-          <span className="eyebrow">Roast list</span>
-          <h2 data-par="1.0">Know what we&apos;re roasting.</h2>
-          <p className="lede">One email a week. New coffees, nothing else.</p>
+          <span className="eyebrow">النشرة</span>
+          <h2>اشترك الآن لتصلك آخر الأخبار!</h2>
+          <p className="lede">الجديد عالمنيو، الفروع الجديدة، والايفنتات، قبل الكل.</p>
         </div>
 
         <form className="news-form rise" onSubmit={submit} noValidate>
           <div
             className={'field-shell' + (state === 'error' ? ' is-error' : '')}
-            data-par="-1.0"
+           
           >
             <div className="field-core">
               <label className="field-label" htmlFor={id}>
-                Email address
+                البريد الإلكتروني
               </label>
               <input
                 id={id}
@@ -46,6 +46,7 @@ export default function Newsletter() {
                 name="email"
                 autoComplete="email"
                 placeholder="you@example.com"
+                dir="ltr"
                 value={email}
                 onChange={(e) => {
                   setEmail(e.target.value)
@@ -68,9 +69,9 @@ export default function Newsletter() {
           </p>
 
           <button className="btn btn-solid btn-icon" type="submit" disabled={state === 'done'}>
-            <span>{state === 'done' ? 'Subscribed' : 'Subscribe'}</span>
+            <span>{state === 'done' ? 'تم الاشتراك' : 'إرسال'}</span>
             <i className="btn-dot" aria-hidden="true">
-              {state === 'done' ? '✓' : '↗'}
+              {state === 'done' ? '✓' : '↖'}
             </i>
           </button>
         </form>

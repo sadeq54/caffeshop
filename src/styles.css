@@ -1,6 +1,7 @@
 /* ============================================================
-   BLK — one-page scroll site (React port)
-   Palette: near-black, bone white, crema gold
+   قهوة بلاك — one-page scroll site (RTL, Arabic-first)
+   Palette: near-black, bone white, caramel latte — the brand is
+   strict black & white; the warmth comes from the cups.
    ============================================================ */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -9,15 +10,22 @@
   --ink:#f2ece3;
   --ink-dim:rgba(242,236,227,.58);
   --ink-faint:rgba(242,236,227,.30);
-  --gold:#c9903f;
+  --gold:#d8b98a;
   --line:rgba(242,236,227,.13);
-  /* Bodoni Moda for display (the wine-label / menu register), Geist for
-     everything functional — the Canela+Graphik model, in open licences.
-     Emphasis inside a headline is the ITALIC OF THE SAME FACE, never a
-     second family. */
-  --display:'Bodoni Moda Variable',Georgia,'Times New Roman',serif;
-  --sans:'Geist Variable','Segoe UI',system-ui,sans-serif;
+  /* the menu board flips the lights on */
+  --board-bg:#ece5d8;
+  --board-card:#f0eeea;
+  --board-ink:#14100c;
+  --board-dim:rgba(20,16,12,.62);
+  --board-line:rgba(20,16,12,.14);
+  /* THEIR fonts, read out of blk.jo's own CSS: Tajawal everywhere
+     (33 of their rules), Aref Ruqaa for the handwritten cup-copy voice.
+     Weight does the register work italics did in Latin — Arabic has no
+     true italic, and slanting it is a crime. */
+  --display:'Tajawal','Segoe UI',system-ui,sans-serif;
+  --sans:'Tajawal','Segoe UI',system-ui,sans-serif;
   --serif:var(--display);
+  --ruqaa:'Aref Ruqaa','Tajawal',serif;
   --ease:cubic-bezier(.32,.72,0,1);
 }
 /* no native smooth scroll: Lenis owns the easing and the two fight */
@@ -49,33 +57,45 @@ img{max-width:100%;display:block}
 
 /* ---------- shared type ---------- */
 /* Mobile first: small caps start at a readable size and only tighten once
-   there is room. Everything under 11px failed the audit on every device. */
+   there is room. Everything under 11px failed the audit on every device.
+   NO tracking on Arabic: letter-spacing opens gaps inside joined words. */
 .eyebrow{
-  font-size:11.5px;letter-spacing:.26em;text-transform:uppercase;
-  color:var(--gold);font-weight:500;
+  font-size:11.5px;letter-spacing:.04em;
+  color:var(--gold);font-weight:600;
 }
 @media(min-width:768px){
-  .eyebrow{font-size:10.5px;letter-spacing:.3em}
+  .eyebrow{font-size:11px}
 }
 h1,h2,h3{
-  font-family:var(--display);font-optical-sizing:auto;
-  font-weight:500;line-height:1.06;letter-spacing:-.018em;
+  font-family:var(--display);
+  /* Arabic ascenders and dots need more leading than Latin ever did */
+  font-weight:700;line-height:1.18;letter-spacing:0;
 }
 .display{
-  font-size:clamp(2.6rem,7.4vw,6.6rem);
-  line-height:1.02;letter-spacing:-.022em;
-  /* high-contrast serif needs a touch of weight to survive over footage */
-  font-weight:500;
+  font-size:clamp(2.4rem,6.6vw,5.8rem);
+  line-height:1.16;letter-spacing:0;
+  font-weight:800;
 }
-/* italic of the same face; inline-block + reserve so descenders (y g j p q)
-   are never clipped by the tight display leading */
+/* Arabic has no italic: emphasis inside a headline is the accent color
+   at a lighter weight, same face */
 .display em{
-  font-style:italic;font-weight:500;letter-spacing:-.012em;
+  font-style:normal;font-weight:600;color:var(--gold);
   display:inline-block;padding-bottom:.07em;
 }
 .lede{
-  font-size:clamp(1rem,1.5vw,1.18rem);line-height:1.62;letter-spacing:-.004em;
-  color:var(--ink-dim);max-width:36ch;
+  font-size:clamp(1rem,1.5vw,1.18rem);line-height:1.9;letter-spacing:0;
+  color:var(--ink-dim);max-width:42ch;font-weight:400;
+}
+/* the handwritten voice — Aref Ruqaa, the same script as their cup copy.
+   Ruqaa's ascenders and loops need real air: generous leading, and never
+   tight clipping containers. */
+.script{
+  font-family:var(--ruqaa);font-weight:700;letter-spacing:0;
+  line-height:1.8;
+}
+.display.script{
+  font-size:clamp(2.6rem,7vw,6.2rem);line-height:1.7;font-weight:700;
+  padding-bottom:.1em;
 }
 .wrap{width:min(1180px,90vw);margin-inline:auto}
 
@@ -85,8 +105,8 @@ h1,h2,h3{
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:18px;transition:opacity .7s,visibility 0s .7s;
 }
-.loader-mark{font-size:22px;font-weight:700;letter-spacing:.42em;text-indent:.42em;color:var(--ink)}
-.loader-pct{font-size:11px;letter-spacing:.3em;color:var(--gold);font-variant-numeric:tabular-nums}
+.loader-mark{font-size:26px;font-weight:800;color:var(--ink)}
+.loader-pct{font-size:11px;letter-spacing:.3em;color:var(--gold);font-variant-numeric:tabular-nums;direction:ltr}
 .loader.done{opacity:0;visibility:hidden;pointer-events:none}
 
 /* ---------- fixed nav ---------- */
@@ -98,22 +118,27 @@ h1,h2,h3{
 }
 .nav *{pointer-events:auto}
 .logo{
-  font-size:20px;font-weight:700;letter-spacing:.42em;
-  text-indent:.42em;color:#fff;text-decoration:none;
   display:inline-flex;align-items:center;min-height:44px;
   /* hands the name over to the page as the rail's wordmark assembles */
   opacity:calc(1 - var(--brand-out,0));
   transform:scale(calc(1 + var(--brand-out,0) * .3));
-  transform-origin:0 50%;
+  transform-origin:100% 50%;
 }
-.nav-links{display:flex;gap:12px;margin-right:-12px}
+.logo img{display:block;height:52px;width:auto}
+.nav-links{display:flex;align-items:center;gap:8px;margin-inline-end:-12px}
 .nav-links a{
-  color:#fff;text-decoration:none;font-size:11px;
-  letter-spacing:.22em;text-transform:uppercase;opacity:.75;
+  color:#fff;text-decoration:none;font-size:12.5px;font-weight:500;
+  letter-spacing:.02em;opacity:.75;
   transition:opacity .3s;
   display:inline-flex;align-items:center;min-height:44px;padding:0 12px;
 }
 .nav-links a:hover{opacity:1}
+/* the order CTA reads as a button even inside the blend-mode nav */
+.nav-links .nav-order{
+  border:1px solid rgba(255,255,255,.5);border-radius:100px;
+  min-height:0;padding:9px 20px;margin-inline-start:8px;opacity:1;
+}
+.nav-links .nav-order:hover{background:rgba(255,255,255,.14)}
 /* one boundary for "phone" across the whole sheet: 767/768 */
 .nav-toggle{display:none}
 @media(max-width:767px){
@@ -121,7 +146,7 @@ h1,h2,h3{
   .nav-toggle{
     display:inline-flex;align-items:center;min-height:44px;padding:0 4px;
     background:none;border:0;cursor:pointer;color:#fff;font:inherit;
-    font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;
+    font-size:13px;font-weight:600;letter-spacing:.02em;
   }
 }
 
@@ -138,15 +163,15 @@ h1,h2,h3{
 .nav-sheet ul{list-style:none;display:flex;flex-direction:column;gap:6px}
 .nav-sheet a{
   display:block;padding:12px 0;text-decoration:none;color:var(--ink);
-  font-family:var(--display);font-weight:500;
-  font-size:clamp(2.2rem,11vw,3.2rem);line-height:1.1;letter-spacing:-.02em;
+  font-family:var(--display);font-weight:700;
+  font-size:clamp(2rem,10vw,3rem);line-height:1.25;letter-spacing:0;
   opacity:0;transform:translateY(18px);
   transition:opacity .5s var(--ease),transform .5s var(--ease);
   transition-delay:calc(var(--i,0) * 70ms + 90ms);
 }
 .nav-sheet.is-open a{opacity:1;transform:none}
 .nav-sheet-foot{
-  font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;
+  font-size:12px;letter-spacing:.03em;
   color:var(--ink-faint);
 }
 @media (prefers-reduced-motion:reduce){
@@ -164,14 +189,17 @@ h1,h2,h3{
    still pinned. The menu below is a normal section, so the bridge needs no
    hold tail of its own. */
 .stage{position:relative;height:620vh}
-.stage-bridge{height:400vh;margin-top:-200vh}
 /* ============================================================
    MENU RAIL — one sideways run through the board
    ============================================================ */
-.menu-rail{position:relative}
+/* the board flips the lights on: the one bright room in a dark site,
+   because the real BLK board is black-on-white — and because a wall of
+   dark sections reads as one long tunnel */
+.menu-rail{position:relative;background:var(--board-bg)}
 .rail-sticky{
   position:sticky;top:0;height:100vh;height:100dvh;
   display:flex;align-items:center;overflow:hidden;
+  background:var(--board-bg);
 }
 .rail-track{
   display:flex;align-items:center;
@@ -184,14 +212,19 @@ h1,h2,h3{
 .rail-chapter{
   flex:0 0 auto;width:clamp(210px,21vw,320px);
   display:flex;flex-direction:column;justify-content:center;gap:14px;
-  padding-right:clamp(8px,1.6vw,26px);
+  padding-inline-end:clamp(8px,1.6vw,26px);
 }
-.rail-chapter h2{font-size:clamp(1.8rem,3.3vw,2.9rem)}
+.rail-chapter h2{font-size:clamp(1.8rem,3.3vw,2.9rem);color:var(--board-ink)}
 .rail-chapter-count{
-  font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;
-  color:rgba(242,236,227,.62);
+  font-size:11.5px;letter-spacing:.02em;
+  color:var(--board-dim);
 }
-@media(min-width:768px){.rail-chapter-count{font-size:10px;letter-spacing:.24em}}
+/* their cup copy, in their hand, big on the board */
+.rail-phrase{
+  font-family:var(--ruqaa);font-weight:700;
+  font-size:clamp(1.5rem,2.6vw,2.4rem);line-height:1.9;
+  color:var(--board-ink);margin-top:6px;
+}
 .rail-chapter--end{width:clamp(240px,26vw,380px)}
 .rail-chapter--end .menu-note{margin:0;max-width:32ch}
 
@@ -208,20 +241,38 @@ h1,h2,h3{
 /* warmth that only exists while the letters are together */
 .gate::before{
   content:"";position:absolute;inset:0;
-  background:radial-gradient(46% 42% at 50% 48%,rgba(201,144,63,.18),transparent 70%);
+  background:radial-gradient(46% 42% at 50% 48%,rgba(216,185,138,.30),transparent 70%);
   opacity:var(--lit,0);
 }
+/* the mark assembles into the brand's boxed logo: قهوة over BLK, framed */
 .gate-mark{
+  position:relative;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:clamp(2px,.8vh,10px);
+  padding:clamp(18px,3vw,40px) clamp(22px,3.6vw,52px);
+  font-family:var(--display);
+}
+.gate-mark::after{
+  content:"";position:absolute;inset:0;
+  border:3px solid var(--board-ink);
+  opacity:var(--lit,0);
+  transform:scale(calc(1.08 - var(--lit,0) * .08));
+}
+.gate-word{
+  font-family:var(--ruqaa);
+  font-size:clamp(1.6rem,5vw,4rem);line-height:1.5;font-weight:700;
+  color:var(--board-ink);opacity:var(--lit,0);
+}
+.gate-row{
   display:flex;align-items:center;justify-content:center;
   gap:clamp(4px,1vw,18px);
-  font-family:var(--display);font-optical-sizing:auto;
 }
 .gate-l{
-  display:block;font-size:clamp(4.6rem,17vw,14rem);line-height:.86;
-  font-weight:500;letter-spacing:-.02em;opacity:.2;
+  display:block;font-size:clamp(4rem,14vw,11rem);line-height:.92;
+  font-weight:800;letter-spacing:-.02em;opacity:.2;color:var(--board-ink);
 }
 .gate-rule{
-  display:block;height:1px;width:min(560px,64vw);background:var(--gold);
+  display:block;height:2px;width:min(560px,64vw);background:var(--board-ink);
   transform:scaleX(0);transform-origin:50% 50%;
 }
 /* The room rises through the opening letters, painting over the rail.
@@ -233,7 +284,9 @@ h1,h2,h3{
 .visit-section,
 .news,
 footer{position:relative;z-index:1}
-.visit-section{margin-top:-100vh}
+/* opaque: this section rises OVER the parked cream board, so without its
+   own ground the dark room's copy sits on cream and disappears */
+.visit-section{margin-top:-100vh;background:var(--bg)}
 /* no pan, no tail: the swipe carousel just ends and the room follows */
 .menu-rail.is-swipe + .visit-section{margin-top:0}
 .is-swipe .gate{display:none}
@@ -252,23 +305,21 @@ footer{position:relative;z-index:1}
 .rail-frame{
   position:relative;display:block;overflow:hidden;
   aspect-ratio:4/5;border-radius:18px;
-  background:var(--bg-2);border:1px solid var(--line);
-  box-shadow:inset 0 1px 0 rgba(242,236,227,.08);
-  transition:border-color .6s var(--ease),transform .6s var(--ease);
+  /* matches the backing baked into the brand's own product cards, so
+     `contain` is seamless whatever the render's edges do */
+  background:var(--board-card);border:1px solid var(--board-line);
+  transition:border-color .6s var(--ease),transform .6s var(--ease),box-shadow .6s var(--ease);
 }
 .rail-img{
-  width:100%;height:100%;object-fit:cover;display:block;
-  /* over-scaled so the image can slide inside its frame without edges.
-     No will-change: translate3d already promotes these, and 15 permanent
-     layers is real GPU memory on a phone. */
-  transform:scale(1.2);
+  width:100%;height:100%;object-fit:contain;display:block;
+  padding:7%;
 }
 /* the affordance: this card opens */
 .rail-open{
-  position:absolute;right:12px;bottom:12px;
+  position:absolute;inset-inline-end:12px;bottom:12px;
   width:34px;height:34px;border-radius:50%;
   display:grid;place-items:center;font-size:12px;
-  background:rgba(10,8,6,.62);border:1px solid rgba(242,236,227,.18);
+  background:rgba(20,16,12,.82);border:1px solid rgba(20,16,12,.2);color:var(--ink);
   opacity:0;transform:translateY(6px);
   transition:opacity .5s var(--ease),transform .5s var(--ease),background .5s var(--ease);
 }
@@ -276,31 +327,32 @@ footer{position:relative;z-index:1}
 .rail-card:focus-visible .rail-open{opacity:1;transform:none}
 .rail-line{
   display:flex;align-items:baseline;justify-content:space-between;gap:14px;
-  margin-top:16px;padding-bottom:9px;border-bottom:1px solid var(--line);
+  margin-top:16px;padding-bottom:9px;border-bottom:1px solid var(--board-line);
 }
-.rail-name{font-family:var(--display);font-weight:500;font-size:clamp(1.05rem,1.5vw,1.32rem);letter-spacing:-.012em}
-.rail-price{font-size:13.5px;color:var(--gold);font-variant-numeric:tabular-nums;transition:transform .6s var(--ease)}
-.rail-note{margin-top:9px;font-size:12.5px;line-height:1.5;color:var(--ink-dim)}
+.rail-name{font-family:var(--display);font-weight:700;font-size:clamp(1.02rem,1.4vw,1.26rem);color:var(--board-ink)}
+.rail-price{font-size:13.5px;font-weight:600;color:#8a5a24;font-variant-numeric:tabular-nums;transition:transform .6s var(--ease);direction:ltr}
+.rail-note{margin-top:9px;font-size:12.5px;line-height:1.7;color:var(--board-dim)}
 
 @media(hover:hover){
   .rail-track:hover .rail-card{opacity:.4}
   .rail-track .rail-card:hover{opacity:1}
-  .rail-card:hover .rail-frame{border-color:rgba(201,144,63,.5);transform:translateY(-5px)}
+  .rail-card:hover .rail-frame{border-color:rgba(20,16,12,.4);transform:translateY(-5px);box-shadow:0 18px 40px rgba(20,16,12,.16)}
   .rail-card:hover .rail-price{transform:translateX(-4px)}
 }
 .rail-card:focus-visible{outline:none}
-.rail-card:focus-visible .rail-frame{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,144,63,.2)}
+.rail-card:focus-visible .rail-frame{border-color:var(--board-ink);box-shadow:0 0 0 3px rgba(20,16,12,.18)}
 
 .rail-progress{
   position:absolute;left:clamp(24px,6vw,90px);right:clamp(24px,6vw,90px);
-  bottom:clamp(26px,5vh,52px);height:1px;background:var(--line);
+  bottom:clamp(26px,5vh,52px);height:1px;background:var(--board-line);
   /* hidden until the rail's loop lights it: it is parked inside the
      sections below and must never appear there */
   opacity:0;
 }
 .rail-progress span{
-  display:block;height:100%;background:var(--gold);
-  transform-origin:0 50%;transform:scaleX(0);
+  display:block;height:100%;background:var(--board-ink);
+  /* the run travels rightward in RTL, so the bar fills from the right */
+  transform-origin:100% 50%;transform:scaleX(0);
 }
 
 /* touch and reduced motion: a real carousel, never a scroll hijack */
@@ -318,7 +370,7 @@ footer{position:relative;z-index:1}
 .is-swipe .rail-progress{display:none}
 .is-swipe .rail-open{opacity:1;transform:none}
 .is-swipe .rail-track::-webkit-scrollbar{height:2px}
-.is-swipe .rail-track::-webkit-scrollbar-thumb{background:var(--line)}
+.is-swipe .rail-track::-webkit-scrollbar-thumb{background:rgba(20,16,12,.3)}
 
 /* ---------- dish detail ---------- */
 .dd{
@@ -338,15 +390,15 @@ footer{position:relative;z-index:1}
   /* fixed, top-layer element, so the blur costs nothing on scroll */
   backdrop-filter:blur(22px);
 }
-.dd-figure{border-radius:20px;overflow:hidden;aspect-ratio:4/5;background:var(--bg-2)}
-.dd-figure img{width:100%;height:100%;object-fit:cover;display:block}
+.dd-figure{border-radius:20px;overflow:hidden;aspect-ratio:4/5;background:var(--board-card)}
+.dd-figure img{width:100%;height:100%;object-fit:contain;display:block;padding:9%}
 .dd-body{
   display:flex;flex-direction:column;gap:13px;
   padding:clamp(24px,3vw,42px);border-radius:20px;
   background:rgba(10,8,6,.82);box-shadow:inset 0 1px 0 rgba(242,236,227,.1);
 }
 .dd-body h2{margin:2px 0 0}
-.dd-price{font-size:15px;color:var(--gold);font-variant-numeric:tabular-nums}
+.dd-price{font-size:15px;color:var(--gold);font-variant-numeric:tabular-nums;direction:ltr;text-align:start}
 .dd-meta{
   display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;
   margin-top:4px;border:1px solid var(--line);border-radius:14px;
@@ -354,24 +406,24 @@ footer{position:relative;z-index:1}
 }
 .dd-meta div{background:rgba(10,8,6,.92);padding:13px 14px}
 .dd-meta dt{
-  font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;
+  font-size:11px;letter-spacing:.02em;
   color:rgba(242,236,227,.58);margin-bottom:6px;
 }
 .dd-meta dd{font-size:14px;line-height:1.35}
-.dd-story{font-size:13.5px;line-height:1.6;color:var(--ink-dim)}
+.dd-story{font-size:13.5px;line-height:1.85;color:var(--ink-dim)}
 .dd-nav{
   display:flex;align-items:center;justify-content:space-between;gap:14px;
   margin-top:auto;padding-top:16px;
 }
 .dd-count{
   font-size:11px;letter-spacing:.2em;color:var(--ink-dim);
-  font-variant-numeric:tabular-nums;white-space:nowrap;
+  font-variant-numeric:tabular-nums;white-space:nowrap;direction:ltr;
 }
 /* grid children default to min-content width and will push a panel wider
    than its own box; this is what let the dialog scroll sideways */
 .dd-panel>*,.dd-body>*,.dd-meta>*{min-width:0}
 .dd-close{
-  position:absolute;top:16px;right:16px;z-index:2;
+  position:absolute;top:16px;inset-inline-end:16px;z-index:2;
   width:38px;height:38px;border-radius:50%;cursor:pointer;
   display:grid;place-items:center;font-size:13px;
   background:rgba(10,8,6,.78);border:1px solid var(--line);color:var(--ink);
@@ -413,8 +465,8 @@ footer{position:relative;z-index:1}
 }
 
 .menu-note{
-  margin-top:clamp(28px,4vh,52px);font-size:13px;
-  color:var(--ink-dim);letter-spacing:.02em;
+  margin-top:clamp(28px,4vh,52px);font-size:13px;line-height:1.9;
+  color:var(--board-dim);
 }
 .sticky{
   position:sticky;top:0;height:100vh;height:100dvh;width:100%;
@@ -455,9 +507,12 @@ footer{position:relative;z-index:1}
    swallows the source-footage corner (delogo residue lives there) */
 .scrim{
   position:absolute;inset:0;pointer-events:none;z-index:2;
+  /* RTL: default captions anchor to the RIGHT, so the heavy side of the
+     wash flips with them; the corner vignette stays put — it swallows the
+     delogo residue baked into the footage's top-right, which is physical */
   background:
     radial-gradient(46% 38% at 100% 0%,rgba(10,8,6,.94) 0%,rgba(10,8,6,.62) 52%,rgba(10,8,6,0) 100%),
-    linear-gradient(90deg,rgba(10,8,6,.86) 0%,rgba(10,8,6,.45) 42%,rgba(10,8,6,.05) 68%),
+    linear-gradient(270deg,rgba(10,8,6,.86) 0%,rgba(10,8,6,.45) 42%,rgba(10,8,6,.05) 68%),
     linear-gradient(0deg,rgba(10,8,6,.75) 0%,transparent 40%);
 }
 /* static film grain over the footage (fixed tile, no per-frame repaints) */
@@ -471,57 +526,46 @@ footer{position:relative;z-index:1}
    on a phone GPU, for a texture nobody sees at that size */
 @media(max-width:767px){.grain{display:none}}
 .caption{
-  position:absolute;left:min(5vw,44px);z-index:3;
+  position:absolute;inset-inline-start:min(5vw,44px);z-index:3;
   top:50%;transform:translateY(calc(-50% + var(--enter,0px)));
   width:min(560px,80vw);
   opacity:0;will-change:opacity,transform;
 }
 /* ---------- caption anchors ----------
    Every beat is framed differently so no two consecutive moments share a
-   composition: middle-left, upper-right, floor, centred, right column. */
+   composition. Logical sides: start = visual right in RTL. Text keeps its
+   natural start alignment everywhere — Arabic follows the script, not the
+   box it happens to sit in. */
 .caption--floor{
   top:auto;bottom:clamp(64px,12vh,120px);
   transform:translateY(var(--enter,0px));
 }
 .caption--upright{
-  top:clamp(88px,15vh,150px);left:auto;right:min(5vw,44px);
-  text-align:right;transform:translateY(var(--enter,0px));
-}
-.caption--upright .lede{margin-left:auto}
-.caption--upright .stats,
-.caption--upright .cards,
-.caption--upright .cta-row{justify-content:flex-end}
-.caption--upright .quote{
-  margin-left:auto;padding-left:0;padding-right:20px;
-  border-left:0;border-right:1px solid var(--gold);
+  top:clamp(88px,15vh,150px);inset-inline-start:auto;inset-inline-end:min(5vw,44px);
+  transform:translateY(var(--enter,0px));
 }
 .caption--center{
-  left:50%;right:auto;width:min(880px,86vw);text-align:center;
+  left:50%;right:auto;inset-inline-start:auto;inset-inline-end:auto;
+  width:min(880px,86vw);text-align:center;
   transform:translate(-50%,calc(-50% + var(--enter,0px)));
 }
+[dir=rtl] .caption--center{left:auto;right:50%;transform:translate(50%,calc(-50% + var(--enter,0px)))}
 .caption--center .lede{margin-inline:auto}
 .caption--center .cta-row{justify-content:center}
-/* block moved to the right column, copy itself stays left-read */
-.caption--right{left:auto;right:min(5vw,44px)}
 
 /* phones get one honest anchor: the frame is too narrow for composition */
 @media(max-width:860px){
   .caption,
   .caption--floor,
   .caption--upright,
-  .caption--center,
-  .caption--right{
-    left:min(6vw,24px);right:min(6vw,24px);width:auto;
+  .caption--center{
+    inset-inline-start:min(6vw,24px);inset-inline-end:min(6vw,24px);
+    left:auto;right:auto;width:auto;
     top:auto;bottom:clamp(72px,14vh,128px);
-    text-align:left;transform:translateY(var(--enter,0px));
+    text-align:start;transform:translateY(var(--enter,0px));
   }
-  .caption--upright .lede,.caption--center .lede{margin-left:0}
-  .caption--upright .stats,.caption--upright .cards,.caption--upright .cta-row,
+  .caption--center .lede{margin-inline:0}
   .caption--center .cta-row{justify-content:flex-start}
-  .caption--upright .quote{
-    margin-left:0;padding-left:20px;padding-right:0;
-    border-left:1px solid var(--gold);border-right:0;
-  }
 }
 .caption .eyebrow{display:block;margin-bottom:20px}
 .caption h1,.caption h2{margin-bottom:22px}
@@ -536,27 +580,27 @@ footer{position:relative;z-index:1}
 .caption .cards,
 .caption .cta-row{transform:translateY(calc(var(--d,0) * 44px))}
 /* longer headlines need a smaller size so they never overflow the viewport */
-.display.sm{font-size:clamp(2.1rem,5.2vw,4.4rem);line-height:.98}
+.display.sm{font-size:clamp(1.9rem,4.6vw,3.8rem);line-height:1.3}
 .stats{display:flex;gap:38px;margin-top:34px;flex-wrap:wrap}
 .stat b{
   display:block;font-size:clamp(1.9rem,3.4vw,2.9rem);
-  font-weight:400;letter-spacing:-.04em;color:var(--gold);line-height:1;
+  font-weight:600;color:var(--gold);line-height:1;
+  font-variant-numeric:tabular-nums;
 }
 .stat span{
-  display:block;margin-top:9px;font-size:11.5px;letter-spacing:.16em;
-  text-transform:uppercase;color:rgba(242,236,227,.62);
+  display:block;margin-top:9px;font-size:12px;letter-spacing:.02em;
+  color:rgba(242,236,227,.62);
 }
-@media(min-width:768px){.stat span{font-size:10.5px;letter-spacing:.2em}}
 .quote{
-  font-family:var(--serif);font-style:italic;
-  font-size:clamp(1.2rem,2.1vw,1.7rem);line-height:1.42;
-  color:var(--ink);max-width:30ch;margin-top:26px;
-  padding-left:20px;border-left:1px solid var(--gold);
+  font-family:var(--serif);font-weight:600;
+  font-size:clamp(1.15rem,2vw,1.55rem);line-height:1.8;
+  color:var(--ink);max-width:34ch;margin-top:26px;
+  padding-inline-start:20px;border-inline-start:2px solid var(--gold);
 }
 .cards{display:flex;gap:26px;margin-top:34px;flex-wrap:wrap}
-.card{flex:1 1 140px;min-width:140px;border-top:1px solid var(--line);padding-top:14px}
-.card b{display:block;font-size:12px;letter-spacing:.18em;text-transform:uppercase;margin-bottom:8px}
-.card p{font-size:13.5px;color:var(--ink-dim);line-height:1.5}
+.card{flex:1 1 120px;min-width:120px;border-top:1px solid var(--line);padding-top:14px}
+.card b{display:block;font-size:13.5px;font-weight:700;letter-spacing:.02em;margin-bottom:8px;color:var(--gold)}
+.card p{font-size:13px;color:var(--ink-dim);line-height:1.7}
 
 .cta-row{display:flex;gap:14px;margin-top:34px;flex-wrap:wrap}
 .btn{
@@ -565,7 +609,7 @@ footer{position:relative;z-index:1}
   /* <button> otherwise paints the UA's buttonface fill, which swallows a
      ghost button's label */
   background:none;color:var(--ink);
-  font-family:inherit;font-size:11px;letter-spacing:.2em;text-transform:uppercase;
+  font-family:inherit;font-size:13px;font-weight:600;letter-spacing:.02em;
   text-decoration:none;white-space:nowrap;cursor:pointer;
   transition:background .5s var(--ease),color .5s var(--ease),
              border-color .5s var(--ease),transform .35s var(--ease);
@@ -596,17 +640,18 @@ footer{position:relative;z-index:1}
 
 /* scroll cue */
 .cue{
-  position:absolute;bottom:34px;right:min(5vw,44px);z-index:3;
-  font-size:9.5px;letter-spacing:.34em;text-transform:uppercase;
+  position:absolute;bottom:34px;inset-inline-end:min(5vw,44px);z-index:3;
+  font-size:10.5px;letter-spacing:.04em;
   color:var(--ink-faint);text-align:center;
 }
 .cue i{
   display:block;width:1px;height:46px;margin:12px auto 0;
   background:linear-gradient(var(--ink-faint),transparent);
 }
-/* progress bar */
+/* progress bar — anchored to the inline start, so it fills with the
+   reading direction */
 .prog{
-  position:absolute;bottom:0;left:0;height:2px;width:0%;
+  position:absolute;bottom:0;inset-inline-start:0;height:2px;width:0%;
   background:var(--gold);z-index:5;
 }
 
@@ -619,37 +664,6 @@ section.pad{padding:clamp(90px,13vh,170px) 0}
   border-bottom:1px solid var(--line);padding-bottom:26px}
 .sec-head h2{font-size:clamp(2.1rem,5vw,4rem);letter-spacing:-.045em}
 
-/* visit — a layered stack, not two columns */
-.visit-stack{
-  display:grid;grid-template-columns:repeat(12,minmax(0,1fr));
-  column-gap:clamp(16px,2.4vw,40px);
-  align-items:start;
-}
-.vs-plate{margin:0;overflow:hidden;border-radius:20px;background:var(--bg-2);
-  border:1px solid var(--line);box-shadow:inset 0 1px 0 rgba(242,236,227,.08)}
-.vs-plate img{width:100%;height:100%;object-fit:cover;display:block}
-/* deepest: the room, tall, holding the left edge */
-.vs-plate--a{grid-column:1/6;grid-row:1/3;aspect-ratio:3/4}
-/* the copy rides beside it, dropped so the plate reads as behind */
-.vs-copy{grid-column:6/13;grid-row:1;padding-top:clamp(24px,7vh,90px)}
-.vs-copy .display{margin:18px 0 22px}
-/* the bar cuts across the seam between the two */
-.vs-plate--b{
-  grid-column:4/9;grid-row:2;aspect-ratio:4/3;
-  margin-top:clamp(28px,6vh,80px);z-index:2;
-}
-/* the panel floats in front, clear of the plate below it */
-.vs-panel{grid-column:9/13;grid-row:2;margin-top:clamp(60px,12vh,150px);z-index:3}
-.visit-stack>*{position:relative}
-
-@media(max-width:980px){
-  .visit-stack{grid-template-columns:1fr;row-gap:clamp(26px,5vh,48px)}
-  .visit-stack>*{grid-column:1/-1!important;grid-row:auto!important;margin-top:0!important}
-  .vs-copy{padding-top:0}
-  .vs-plate--a{aspect-ratio:4/3}
-  /* stacked single file, depth would only jitter the layout */
-  .vs-plate,.vs-panel>div{transform:none!important}
-}
 /* same shell-and-core construction as the form, so the two panels on the
    page read as one system */
 .info{
@@ -661,11 +675,10 @@ section.pad{padding:clamp(90px,13vh,170px) 0}
   box-shadow:inset 0 1px 0 rgba(242,236,227,.10);
 }
 .info dt{
-  font-size:11px;letter-spacing:.2em;text-transform:uppercase;
+  font-size:11.5px;letter-spacing:.02em;font-weight:600;
   color:rgba(242,236,227,.72);margin-bottom:9px;
 }
-@media(min-width:768px){.info dt{font-size:10px;letter-spacing:.24em}}
-.info dd{font-size:15.5px;line-height:1.55}
+.info dd{font-size:15px;line-height:1.8}
 
 /* newsletter — editorial split: the ask on the left, the form on the right */
 .news{
@@ -712,13 +725,15 @@ section.pad{padding:clamp(90px,13vh,170px) 0}
   box-shadow:inset 0 1px 0 rgba(242,236,227,.10);
 }
 .field-label{
-  font-size:11px;letter-spacing:.2em;text-transform:uppercase;
+  font-size:11.5px;letter-spacing:.02em;font-weight:600;
   color:rgba(242,236,227,.72);
 }
-@media(min-width:768px){.field-label{font-size:10px;letter-spacing:.24em}}
 .field-core input{
   width:100%;padding:0;border:0;outline:none;background:transparent;
-  color:var(--ink);font-family:inherit;font-size:16px;letter-spacing:-.005em;
+  color:var(--ink);font-family:inherit;font-size:16px;
+  /* the value is an email — LTR — but the empty field should not park the
+     caret on the wrong side of an RTL form */
+  text-align:start;
 }
 .field-core input::placeholder{color:rgba(242,236,227,.50)}
 .field-shell.is-error{border-color:rgba(224,112,79,.62)}
@@ -726,20 +741,24 @@ section.pad{padding:clamp(90px,13vh,170px) 0}
 .field-note.is-error{color:#e0704f}
 .field-note.is-done{color:var(--gold)}
 
-/* footer */
-footer{padding:70px 0 46px}
-.foot-top{display:flex;justify-content:space-between;gap:36px;flex-wrap:wrap;margin-bottom:56px}
-.foot-mark{font-size:clamp(3.4rem,12vw,9rem);font-weight:700;letter-spacing:.06em;line-height:.8;color:rgba(242,236,227,.07)}
-.foot-links{display:flex;gap:8px 18px;flex-wrap:wrap;margin-left:-10px}
-.foot-links a{
-  color:var(--ink-dim);text-decoration:none;font-size:11.5px;
-  letter-spacing:.16em;text-transform:uppercase;transition:color .3s;
-  /* the label stays small; the tappable box does not */
-  padding:13px 10px;
+/* ---------- the numbers (their about page shows these as 0 0 0 0) ---------- */
+.counters{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:clamp(18px,3vw,44px);
+  margin-top:clamp(72px,12vh,150px);
+  border-top:1px solid var(--line);padding-top:clamp(30px,5vh,54px);
 }
-.foot-links a:hover{color:var(--gold)}
-.foot-bot{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;
-  border-top:1px solid var(--line);padding-top:26px;font-size:11.5px;color:var(--ink-dim)}
+.counter b{
+  display:block;font-size:clamp(2.6rem,6vw,5rem);font-weight:800;
+  line-height:1;color:var(--ink);font-variant-numeric:tabular-nums;
+}
+.counter span{
+  display:block;margin-top:10px;font-size:12.5px;letter-spacing:.02em;
+  color:var(--ink-dim);
+}
+@media(max-width:640px){
+  .counters{grid-template-columns:repeat(2,minmax(0,1fr));gap:26px}
+}
 
 /* reveal-on-scroll */
 .rise{

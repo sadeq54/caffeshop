@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import Nav from './components/Nav.jsx'
 import FilmStage from './components/FilmStage.jsx'
-import BridgeFilm from './components/BridgeFilm.jsx'
+import Manifesto from './components/Manifesto.jsx'
 import MenuRail from './components/MenuRail.jsx'
 import Visit from './components/Visit.jsx'
 import Newsletter from './components/Newsletter.jsx'
@@ -17,10 +17,9 @@ export default function App() {
     return stopParallax
   }, [])
 
-  // reveal-on-scroll for the static sections (IntersectionObserver survives
-  // layout shifts, unlike position-measured tweens)
+  // reveal-on-scroll for the static sections
   useEffect(() => {
-    const els = document.querySelectorAll('.rise')
+    const els = document.querySelectorAll('.rise, .reveal')
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
@@ -30,9 +29,6 @@ export default function App() {
           }
         })
       },
-      // Fire BEFORE the element reaches the fold. At 0.16/no-margin the
-      // reveal only started once the block was well up the screen, so at
-      // speed you scrolled past a second of blank space while it faded in.
       { threshold: 0.01, rootMargin: '0px 0px 20% 0px' },
     )
     els.forEach((el, i) => {
@@ -44,13 +40,10 @@ export default function App() {
 
   return (
     <>
-      {/* the browser scrollbar is hidden; this is its replacement */}
-      <div className="scroll-rail" aria-hidden="true">
-        <span />
-      </div>
+      <div className="scroll-rail" aria-hidden="true"><span /></div>
       <Nav />
       <FilmStage />
-      <BridgeFilm />
+      <Manifesto />
       <MenuRail />
       <Visit />
       <Newsletter />

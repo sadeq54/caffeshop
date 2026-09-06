@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 
 const LINKS = [
-  ['Menu', '#menu'],
-  ['Visit', '#visit'],
-  ['Wholesale', '#wholesale'],
+  ['المنيو', '#menu'],
+  ['مواقعنا', '#visit'],
+  ['تواصل معنا', '#contact'],
 ]
 
 export default function Nav() {
@@ -45,8 +45,10 @@ export default function Nav() {
   return (
     <>
       <nav className="nav">
-        <a className="logo" href="#top" onClick={() => setOpen(false)}>
-          BLK
+        {/* the real mark: the white cut works everywhere because the whole
+            nav rides mix-blend difference */}
+        <a className="logo" href="#top" onClick={() => setOpen(false)} aria-label="قهوة بلاك">
+          <img src="/brand/qahwa-blk-white.webp" alt="" width="46" height="62" />
         </a>
 
         <div className="nav-links">
@@ -55,6 +57,9 @@ export default function Nav() {
               {label}
             </a>
           ))}
+          <a className="nav-order" href="http://del.blk.jo" target="_blank" rel="noreferrer">
+            اطلب اونلاين
+          </a>
         </div>
 
         {/* below 768px the inline links cannot fit beside the logo, so they
@@ -66,7 +71,7 @@ export default function Nav() {
           aria-controls="nav-sheet"
           onClick={() => setOpen((v) => !v)}
         >
-          {open ? 'Close' : 'Menu'}
+          {open ? 'اغلاق' : 'القائمة'}
         </button>
       </nav>
 
@@ -79,8 +84,13 @@ export default function Nav() {
               </a>
             </li>
           ))}
+          <li style={{ '--i': LINKS.length }}>
+            <a href="http://del.blk.jo" target="_blank" rel="noreferrer">
+              اطلب اونلاين
+            </a>
+          </li>
         </ul>
-        <p className="nav-sheet-foot">Rainbow Street, Jabal Amman</p>
+        <p className="nav-sheet-foot">الأردن · لبنان · 34 فرع</p>
       </div>
     </>
   )

@@ -1,154 +1,163 @@
 import { useEffect, useRef, useState } from 'react'
-import useScrollFilm from '../lib/useScrollFilm.js'
 
-/* Hero film: 520vh scroll stage, footage scrubbed by scroll,
-   brand captions fading through fixed progress windows. */
+/* The opening. One short film plays through ONCE, and the page holds still
+   until it is done: no scroll, no nav, just the slogan arriving line by
+   line with the footage. Then the frame freezes, the room lights come up,
+   and the site opens. Escape hatches are non-negotiable: a skip button,
+   a hard ceiling, an autoplay failure, or reduced motion all release the
+   page immediately. Nobody is ever trapped behind a video. */
+const LINES = [
+  ['قهوة زاكية.', 0.5],
+  ['كل يوم.', 3.3],
+  ['بسعر منطقي.', 6.1],
+]
+const CEILING = 14000
+
 export default function FilmStage() {
-  const stageRef = useRef(null)
-  const stickyRef = useRef(null)
   const videoRef = useRef(null)
-  const cueRef = useRef(null)
   const progRef = useRef(null)
-  const [progress, setProgress] = useState(0)
-  const [ready, setReady] = useState(
-    () => window.matchMedia('(prefers-reduced-motion: reduce)').matches,
-  )
+  const [reduce] = useState(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+  const [phase, setPhase] = useState(reduce ? LINES.length : 0)
+  const [done, setDone] = useState(reduce)
+  const [ready, setReady] = useState(reduce)
+  const [canSkip, setCanSkip] = useState(false)
 
-  // Hard ceiling on the loader. A stalled film must never keep the site
-  // behind a black screen: the poster is already the first frame.
   useEffect(() => {
-    const t = setTimeout(() => setReady(true), 4000)
-    return () => clearTimeout(t)
+    const html = document.documentElement
+    let released = reduce
+    let raf = 0
+
+    const release = () => {
+      if (released) return
+      released = true
+      html.classList.remove('is-intro')
+      const lenis = window.__blkLenis
+      if (lenis) lenis.start()
+      setDone(true)
+      setPhase(LINES.length)
+    }
+    // Lenis is created by the parent's effect, which runs AFTER this one:
+    // keep asking until it exists, unless we have already been released.
+    const lock = () => {
+      if (released) return
+      const lenis = window.__blkLenis
+      if (lenis) lenis.stop()
+      else requestAnimationFrame(lock)
+    }
+
+    if (reduce) {
+      setReady(true)
+      return
+    }
+
+    html.classList.add('is-intro')
+    window.scrollTo(0, 0)
+    lock()
+
+    const video = videoRef.current
+    const coarse = window.matchMedia('(hover: none) and (pointer: coarse)').matches
+    const small = window.matchMedia('(max-width: 860px)').matches
+    video.src = coarse || small ? '/intro-m.mp4' : '/intro.mp4'
+
+    const ceiling = setTimeout(release, CEILING)
+    const skipTimer = setTimeout(() => setCanSkip(true), 1600)
+
+    const tick = () => {
+      const t = video.currentTime || 0
+      const d = video.duration || 10.4
+      if (progRef.current) progRef.current.style.transform = 'scaleX(' + Math.min(1, t / d).toFixed(4) + ')'
+      let p = 0
+      for (let i = 0; i < LINES.length; i++) if (t >= LINES[i][1]) p = i + 1
+      setPhase((cur) => (p > cur ? p : cur))
+      raf = requestAnimationFrame(tick)
+    }
+
+    const onCanPlay = () => {
+      setReady(true)
+      const p = video.play()
+      if (p && p.catch) p.catch(release) // autoplay refused: open the page
+      raf = requestAnimationFrame(tick)
+    }
+    const onEnded = () => {
+      video.pause() // hold the last frame under the opened page
+      release()
+    }
+    video.addEventListener('canplay', onCanPlay, { once: true })
+    video.addEventListener('ended', onEnded)
+    video.addEventListener('error', release)
+    video.load()
+
+    return () => {
+      clearTimeout(ceiling)
+      clearTimeout(skipTimer)
+      cancelAnimationFrame(raf)
+      video.removeEventListener('ended', onEnded)
+      video.removeEventListener('error', release)
+      html.classList.remove('is-intro')
+      window.__blkLenis?.start()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  useScrollFilm({
-    stageRef,
-    stickyRef,
-    videoRef,
-    cueRef,
-    progRef,
-    src: '/film.mp4',
-    srcMobile: '/film-m.mp4',
-    // the last 100vh of the stage is a hold: the film has finished, the
-    // sticky stays pinned, and the bridge irises in over a held frame
-    scrubEnd: 0.8077,
-    onProgress: setProgress,
-    onReady: () => setReady(true),
-  })
+  function skip() {
+    const video = videoRef.current
+    if (video && video.duration) {
+      try {
+        video.currentTime = Math.max(0, video.duration - 0.05)
+      } catch {
+        /* not seekable yet */
+      }
+      video.pause()
+    }
+    document.documentElement.classList.remove('is-intro')
+    window.__blkLenis?.start()
+    setDone(true)
+    setPhase(LINES.length)
+  }
 
   return (
-    <div className="stage" id="top" ref={stageRef}>
-      <div className={'loader' + (ready ? ' done' : '')} aria-hidden="true">
-        <span className="loader-mark">BLK</span>
-        <span className="loader-pct">{progress}%</span>
+    <header className={'intro' + (done ? ' is-done' : '') + (ready ? ' is-ready' : '')} id="top">
+      <div className="intro-media" aria-hidden="true">
+        {!reduce && (
+          <video className="intro-film" ref={videoRef} muted playsInline preload="auto" disableRemotePlayback tabIndex={-1} />
+        )}
+        <img className="intro-poster" src={reduce ? '/intro-end.jpg' : '/poster.jpg'} alt="" fetchPriority="high" />
+        <div className="intro-scrim" />
+        <div className="grain" />
       </div>
 
-      <div className="sticky" ref={stickyRef}>
-        <div className="film-wrap">
-          <video
-            className="film"
-            ref={videoRef}
-            muted
-            playsInline
-            preload="auto"
-            disableRemotePlayback
-            aria-hidden="true"
-            tabIndex={-1}
-          />
-          {/* the poster IS the first frame, so the stage is complete the moment
-            it paints; the film arrives quietly behind it */}
-        <img
-          className="film-poster"
-          src="/poster.jpg"
-          alt=""
-          fetchPriority="high"
-          onLoad={() => setReady(true)}
-        />
-          <div className="scrim" />
-          <div className="grain" />
-        </div>
-
-        {/* 1 · HERO */}
-        <div className="caption" data-in="0" data-out="0.15">
-          <span className="eyebrow">Amman · Roasted in small batches</span>
-          <h1 className="display">
-            Coffee,<br />
-            <em>slowed down.</em>
-          </h1>
+      <div className="intro-copy">
+        <span className="eyebrow intro-eyebrow">قهوة مختصة · الأردن ولبنان</span>
+        <h1 className="display intro-title">
+          {LINES.map(([text], i) => (
+            <span key={text} className={'intro-line' + (phase > i ? ' in' : '')} style={{ '--i': i }}>
+              <span>{text}</span>
+            </span>
+          ))}
+        </h1>
+        <div className="intro-after">
           <p className="lede">
-            Sourced from farms we can name. Roasted three times a week. Poured like it
-            matters — because it does.
+            قهوة بلاك هي إعادة تعريف للقهوة المختصة بروح عصرية، ومبنية على مبدأ بسيط:
+            الكل بيستحق قهوة زاكية، بتتقدم بابتسامة، وبسعر منطقي.
           </p>
           <div className="cta-row">
             <a className="btn btn-solid btn-icon" href="#menu">
-              <span>See the menu</span>
-              <i className="btn-dot" aria-hidden="true">↗</i>
+              <span>شوف المنيو</span>
+              <i className="btn-dot" aria-hidden="true">↖</i>
             </a>
-            <a className="btn btn-ghost" href="#visit">Find us</a>
+            <a className="btn btn-ghost" href="#visit">اقرب فرع</a>
           </div>
         </div>
-
-        {/* 2 · THE PROMISE */}
-        <div className="caption caption--upright" data-in="0.30" data-out="0.42">
-          <span className="eyebrow">The promise</span>
-          <h2 className="display">
-            Fresh isn&apos;t<br />
-            a word.<br />
-            <em>It&apos;s a date.</em>
-          </h2>
-          <p className="lede">
-            Most coffee you buy was roasted months ago and shipped until the flavour left
-            it. Ours carries the day it was roasted printed on the bag.
-          </p>
-          <div className="stats">
-            <div className="stat"><b>3&times;</b><span>roasts per week</span></div>
-            <div className="stat"><b>14</b><span>days shelf life</span></div>
-            <div className="stat"><b>100%</b><span>traceable to farm</span></div>
-          </div>
-        </div>
-
-        {/* 3 · ORIGIN */}
-        <div className="caption caption--floor" data-in="0.56" data-out="0.66">
-          <span className="eyebrow">Origin</span>
-          <h2 className="display">
-            We know<br />
-            the farm.
-          </h2>
-          <p className="lede">
-            We buy directly wherever we can — Yirgacheffe, Huila, Nyeri — and we pay above
-            commodity price every time. It costs us more. It is the entire reason the cup
-            tastes the way it does.
-          </p>
-          <p className="quote">
-            You can taste the difference between coffee that was bought and coffee that
-            was chosen.
-          </p>
-        </div>
-
-        {/* 4 · THE CRAFT */}
-        {/* out by film-end so the screen is clear when the bridge irises in */}
-        <div className="caption" data-in="0.78" data-out="0.88">
-          <span className="eyebrow">The craft</span>
-          <h2 className="display sm">
-            Eighteen&nbsp;grams.<br />
-            <em>Twenty-eight&nbsp;seconds.</em>
-          </h2>
-          <p className="lede">
-            Every shot is weighed in, weighed out and timed. We recalibrate through the
-            day as the humidity shifts — a recipe that was right at 8am is wrong by 3pm.
-          </p>
-          <div className="cards">
-            <div className="card"><b>Weighed</b><p>Every shot, in and out. Never guessed.</p></div>
-            <div className="card"><b>Timed</b><p>26–30 seconds, or we start again.</p></div>
-            <div className="card"><b>Tuned</b><p>Recalibrated through the day, every day.</p></div>
-          </div>
-        </div>
-
-        <div className="cue" ref={cueRef}>
-          Scroll<i></i>
-        </div>
-        <div className="prog" ref={progRef} />
       </div>
-    </div>
+
+      {/* the only chrome during the lock: how much is left, and the way out */}
+      <div className="intro-bar" aria-hidden="true"><span ref={progRef} /></div>
+      {!done && (
+        <button type="button" className={'intro-skip' + (canSkip ? ' in' : '')} onClick={skip}>
+          تخطي <i aria-hidden="true">←</i>
+        </button>
+      )}
+      <div className="cue intro-cue">سكرول<i></i></div>
+    </header>
   )
 }
