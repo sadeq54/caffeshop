@@ -98,8 +98,8 @@ export default function Visit() {
             <figcaption>الفرع الجديد · عمّان</figcaption>
           </figure>
           <figure className="reveal vg-wide">
-            <div className="reveal-clip"><img src="/places/beirut.webp" alt="فرع قهوة بلاك في الجامعة الأميركية في بيروت" loading="lazy" width="1000" height="750" /></div>
-            <figcaption>الجامعة الأميركية · بيروت</figcaption>
+            <div className="reveal-clip"><img src="/places/drive.webp" alt="نافذة الدرايف ثرو في قهوة بلاك" loading="lazy" width="1000" height="750" /></div>
+            <figcaption>درايف ثرو · عمّان</figcaption>
           </figure>
         </div>
 

@@ -7,11 +7,11 @@ import { useEffect, useRef, useState } from 'react'
    a hard ceiling, an autoplay failure, or reduced motion all release the
    page immediately. Nobody is ever trapped behind a video. */
 const LINES = [
-  ['قهوة زاكية.', 0.5],
-  ['كل يوم.', 3.3],
-  ['بسعر منطقي.', 6.1],
+  ['قهوة زاكية.', 0.25],
+  ['كل يوم.', 1.75],
+  ['بسعر منطقي.', 3.3],
 ]
-const CEILING = 14000
+const CEILING = 8500
 
 export default function FilmStage() {
   const videoRef = useRef(null)
@@ -60,11 +60,11 @@ export default function FilmStage() {
     video.src = coarse || small ? '/intro-m.mp4' : '/intro.mp4'
 
     const ceiling = setTimeout(release, CEILING)
-    const skipTimer = setTimeout(() => setCanSkip(true), 1600)
+    const skipTimer = setTimeout(() => setCanSkip(true), 900)
 
     const tick = () => {
       const t = video.currentTime || 0
-      const d = video.duration || 10.4
+      const d = video.duration || 6.1
       if (progRef.current) progRef.current.style.transform = 'scaleX(' + Math.min(1, t / d).toFixed(4) + ')'
       let p = 0
       for (let i = 0; i < LINES.length; i++) if (t >= LINES[i][1]) p = i + 1
@@ -122,6 +122,11 @@ export default function FilmStage() {
           <video className="intro-film" ref={videoRef} muted playsInline preload="auto" disableRemotePlayback tabIndex={-1} />
         )}
         <img className="intro-poster" src={reduce ? '/intro-end.jpg' : '/poster.jpg'} alt="" fetchPriority="high" />
+        {/* The frame the page rests on once the film ends — the same last
+            frame, but with the real boxed mark printed on the cup instead of
+            the placeholder square the generator drew. It fades in over the
+            paused video, so the most-looked-at frame is on-brand. */}
+        {!reduce && <img className="intro-hold" src="/intro-end.jpg" alt="" loading="lazy" />}
         <div className="intro-scrim" />
         <div className="grain" />
       </div>

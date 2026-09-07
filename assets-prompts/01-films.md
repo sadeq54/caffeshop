@@ -16,8 +16,10 @@ frame that can hold still as a photograph.
 
 ## i1-handoff.mp4 · Flow
 
-UPLOAD: `public/menu-blk/Spanish_Latte.webp` as the reference image (so the
-cup in the shot is THEIR cup)
+UPLOAD: `public/menu-blk/Spanish_Latte.webp` (so the cup in the shot is
+THEIR cup). If Flow accepts a second reference, also attach
+`public/brand/qahwa-blk-black.webp` — the clean logo file holds the glyphs
+far better than a photo that merely contains them.
 
 ```
 One continuous handheld documentary shot, 8 seconds, 16:9. Morning in
@@ -25,15 +27,26 @@ Amman: a drive-thru window of a small modern coffee kiosk, clean
 black-and-white interior behind the glass. A barista's hand in a black
 sleeve passes an iced latte in a clear cup toward the camera; a young
 woman's hand takes it from her car window, sunlight flaring through the
-cup and its condensation. The right third of the frame stays quiet and
-dark for text. Natural daylight, warm neutral grade, blacks stay black,
-shallow depth of field. The cup carries only a small black square
-outline, no readable text anywhere, no logos, no watermark. Constant
-gentle camera drift the whole 8 seconds, no cuts.
+cup and its condensation. The cup carries exactly the same printed logo
+as the reference image: a thin black rectangular frame with the Arabic
+word from the reference on top and the letters BLK below it, reproduced
+faithfully, sharp and undistorted, no other text anywhere in the frame.
+The right third of the frame stays quiet and dark for text. Natural
+daylight, warm neutral grade, blacks stay black, shallow depth of field.
+Constant gentle camera drift the whole 8 seconds, no cuts.
 ```
 
-→ save as `i1-handoff.mp4` · regenerate if the cup carries readable letters
-or the right third is busy
+→ save as `i1-handoff.mp4`
+→ zoom into the cup on the result: if the Arabic word is warped, misjoined
+or invented (the model often almost-spells قهوة), fall back to the safe
+version below and overlay the real mark in post
+
+Fallback line (replaces the logo sentence if the lettering comes out wrong):
+
+```
+The cup carries only a small black square outline, no readable text
+anywhere, no logos, no watermark.
+```
 
 ## i2-ritual.mp4 · Flow · the frame the page freezes on
 

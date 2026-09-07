@@ -1,2 +1,7 @@
 node_modules/
 dist/
+
+# Raw generation masters (Flow / AI Studio outputs, ~13MB). The site ships
+# the encoded derivatives in public/ — intro.mp4, the places/*.webp plates —
+# so the sources stay local.
+incoming/

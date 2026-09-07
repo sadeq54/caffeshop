@@ -559,8 +559,11 @@ footer{position:relative;z-index:1}
   .caption--floor,
   .caption--upright,
   .caption--center{
-    inset-inline-start:min(6vw,24px);inset-inline-end:min(6vw,24px);
+    /* physical resets FIRST: `left`/`right` are the physical equivalents of
+       the logical insets, so listing them after would wipe the insets and
+       drop the caption to shrink-to-fit against the raw viewport edge */
     left:auto;right:auto;width:auto;
+    inset-inline-start:min(6vw,24px);inset-inline-end:min(6vw,24px);
     top:auto;bottom:clamp(72px,14vh,128px);
     text-align:start;transform:translateY(var(--enter,0px));
   }

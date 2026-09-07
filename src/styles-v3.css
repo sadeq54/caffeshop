@@ -12,6 +12,12 @@ html.is-intro .nav,html.is-intro .scroll-rail{opacity:0;pointer-events:none}
 .intro-film,.intro-poster{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
 .intro-poster{z-index:1;transition:opacity .6s}
 .intro.is-ready .intro-poster{opacity:0}
+/* the branded hold frame, laid over the paused video after the film ends */
+.intro-hold{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;
+  z-index:1;opacity:0;transition:opacity .35s var(--ease);
+}
+.intro.is-done .intro-hold{opacity:1}
 .intro-scrim{
   position:absolute;inset:0;z-index:2;pointer-events:none;
   background:
@@ -32,7 +38,8 @@ html.is-intro .nav,html.is-intro .scroll-rail{opacity:0;pointer-events:none}
 .intro-line{display:block;overflow:hidden;padding-bottom:.1em}
 .intro-line>span{
   display:block;transform:translateY(112%);opacity:0;
-  transition:transform 1.1s var(--ease),opacity .8s var(--ease);
+  /* brisk: the film is only ~6s, so a line has to land, not drift */
+  transition:transform .72s var(--ease),opacity .5s var(--ease);
 }
 .intro-line.in>span{transform:none;opacity:1}
 .intro-line:nth-child(3)>span{color:var(--gold);font-weight:600}
@@ -68,6 +75,17 @@ html.is-intro .nav,html.is-intro .scroll-rail{opacity:0;pointer-events:none}
 
 /* ---------- THE STORY: pinned beats over their own storefront, no film ---------- */
 .stage-mf{height:420vh}
+/* one thought per screen: the supporting line stays a single short breath */
+.lede--one{max-width:34ch}
+/* the beats never crowd a small frame: tighter display, smaller lede */
+@media(max-width:860px){
+  .stage-mf .display{font-size:clamp(2rem,8.5vw,2.9rem)}
+  .stage-mf .display.sm{font-size:clamp(1.7rem,6.8vw,2.4rem)}
+  .stage-mf .lede{font-size:15px;line-height:1.85}
+  .stage-mf .stats{gap:26px;margin-top:24px}
+  .stage-mf .caption .eyebrow{margin-bottom:14px}
+  .stage-mf .caption h1,.stage-mf .caption h2{margin-bottom:16px}
+}
 /* the room breathes: a slow settle as the beats pass, on top of the iris zoom */
 .mf-img{transform:scale(calc(var(--iris-scale,1) * (1.12 - var(--p,0) * .12)))}
 .mf-mark .display.script{font-size:clamp(3rem,9vw,8rem)}

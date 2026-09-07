@@ -26,19 +26,15 @@ export default function Manifesto() {
           <h2 className="display script">كيف قهوتك؟</h2>
         </div>
 
-        {/* 1 · THE QUESTION */}
+        {/* 1 · THE QUESTION — one thought, a breath, the numbers */}
         <div className="caption" data-in="0.24" data-out="0.4">
           <span className="eyebrow">جاوبنا على سؤال بسيط</span>
-          <h2 className="display sm">
-            «بقدر الواحد يقدّم قهوة خرافية،<br />
-            مع تجربة بتجنن،<br />
-            <em>وبسعر منطقي؟»</em>
+          <h2 className="display">
+            قهوة خرافية.<br />
+            تجربة بتجنن.<br />
+            <em>وبسعر منطقي؟</em>
           </h2>
-          <p className="lede">
-            بدايتنا كانت بشهر 10 سنة ال2019. لاحظنا إنه القهوة المختصة صارت رمز
-            للـ«بريستيج» الزايد: أسعار غالية، منيو معقد، وأجواء بتحسسك إنك غريب.
-            وبالمقابل، قهوة الشارع الرخيصة مستواها مش ثابت.
-          </p>
+          <p className="lede lede--one">بلشنا بهاد السؤال بشهر 10 سنة ال2019.</p>
           <div className="stats">
             <div className="stat"><b>34</b><span>فرع</span></div>
             <div className="stat"><b>+220</b><span>موظف</span></div>
@@ -53,14 +49,8 @@ export default function Manifesto() {
             بنستثمر<br />
             بشبابنا.
           </h2>
-          <p className="lede">
-            70% من موظفينا الـ220+ طلاب جامعات أو خريجين. بندربهم على إدارة المخزون
-            وتحليل الأرباح والخسائر والقيادة التشغيلية، ومنح دراسية بقيمة 1,000 دولار
-            سنوياً للي بيكمل معنا سنة.
-          </p>
-          <p className="quote">
-            بنوظف من شبابنا، وبندرب قادة للمستقبل، وبنرجع نستثمر بالمجتمعات اللي
-            احنا جزء منها.
+          <p className="lede lede--one">
+            70% من فريقنا طلاب جامعات وخريجين، ومنح دراسية بقيمة 1,000 دولار سنوياً.
           </p>
         </div>
 
